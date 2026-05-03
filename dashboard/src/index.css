@@ -1,1 +1,54 @@
 @import "tailwindcss";
+
+:root {
+  --pattern-edge-height: calc(var(--tile-width) * 48 / 147);
+  --container-width: 1400px;
+  --total-tiles: 43;
+  --tile-width: calc(min(var(--container-width), 100vw) / var(--total-tiles));
+  --column-width: calc(var(--tile-width) * 6);
+  --inter-section-space: calc(var(--tile-width) * 2);
+  --border-radius-default: 2px;
+  --color-white: #fff;
+  --color-normal-gray: #8a8a8a;
+  --color-light-gray: #636363;
+  --color-lighter-gray: #c9c9c9;
+  --color-lighterish-gray: #e4e4e4;
+  --color-lightest-gray: #f6f6f6;
+  --color-dark-gray: #383838;
+  --color-darker-gray: #292929;
+  --color-darkest-gray: #111;
+  --color-accent: #db1f5d;
+  --color-accent-light: #f098b5;
+  --space-4xs: 2px;
+  --space-xxxs: 4px;
+  --space-xxs: 8px;
+  --space-xs: 12px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+  --space-xxl: 64px;
+  --space-xxxl: 96px;
+  --hover-transition: .2s ease-in-out;
+  --font-family: QuadSans, Georgia, sans-serif;
+  --font-weight: 500;
+  --font-size-xxxs: 0.05rem;
+  --font-size-xxs: 0.3rem;
+  --font-size-xs: 0.35rem;
+  --font-size-sm: 0.45rem;
+  --font-size-md: 0.6rem;
+  --font-size-lg: 0.8rem;
+  --font-size-xl: 1rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-dark-gray);
+  color: var(--color-white);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight);
+}

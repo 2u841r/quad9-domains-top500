@@ -2,20 +2,37 @@ const VIEWS = ['daily', 'monthly', 'quarterly', 'yearly']
 
 export default function ViewTabs({ view, onChange }) {
   return (
-    <div className="flex border-b border-gray-800">
-      {VIEWS.map(v => (
-        <button
-          key={v}
-          onClick={() => onChange(v)}
-          className={`px-6 py-3 text-sm font-medium capitalize transition-colors ${
-            view === v
-              ? 'text-purple-400 border-b-2 border-purple-400 -mb-px'
-              : 'text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          {v}
-        </button>
-      ))}
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      borderBottom: '1px solid var(--color-darkest-gray)',
+      backgroundColor: 'var(--color-darker-gray)',
+    }}>
+      {VIEWS.map(v => {
+        const active = view === v
+        return (
+          <button
+            key={v}
+            onClick={() => onChange(v)}
+            style={{
+              padding: 'var(--space-xs) var(--space-md)',
+              fontSize: 'var(--font-size-lg)',
+              fontFamily: 'var(--font-family)',
+              fontWeight: 'var(--font-weight)',
+              textTransform: 'capitalize',
+              cursor: 'pointer',
+              background: 'none',
+              border: 'none',
+              borderBottom: active ? '2px solid var(--color-accent)' : '2px solid transparent',
+              color: active ? 'var(--color-accent)' : 'var(--color-lighterish-gray)',
+              marginBottom: -1,
+              transition: 'var(--hover-transition)',
+            }}
+          >
+            {v}
+          </button>
+        )
+      })}
     </div>
   )
 }

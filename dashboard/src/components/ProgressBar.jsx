@@ -1,11 +1,19 @@
 export default function ProgressBar({ loading, progress }) {
   if (!loading) return null
   return (
-    <div className="w-full h-0.5 bg-gray-800 rounded-full overflow-hidden">
-      <div
-        className="h-full bg-purple-500 transition-all duration-200"
-        style={{ width: `${progress}%` }}
-      />
+    <div style={{
+      width: '100%',
+      height: 2,
+      backgroundColor: 'var(--color-darker-gray)',
+      borderRadius: 'var(--border-radius-default)',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        height: '100%',
+        width: `${progress}%`,
+        backgroundColor: 'var(--color-accent)',
+        transition: 'width 0.2s ease-in-out',
+      }} />
     </div>
   )
 }

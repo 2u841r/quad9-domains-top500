@@ -1,15 +1,26 @@
 import {
   today, FIRST_DATE, MONTH_NAMES,
   availableYears, availableMonths, availableQuarters,
-  periodLabel,
 } from '../utils/dates'
+
+const inputStyle = {
+  backgroundColor: 'var(--color-darker-gray)',
+  border: '1px solid var(--color-light-gray)',
+  color: 'var(--color-lighter-gray)',
+  fontSize: 'var(--font-size-lg)',
+  fontFamily: 'var(--font-family)',
+  borderRadius: 'var(--border-radius-default)',
+  padding: 'var(--space-xxs) var(--space-xs)',
+  outline: 'none',
+  cursor: 'pointer',
+}
 
 function Select({ value, onChange, children }) {
   return (
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded px-3 py-2 focus:outline-none focus:border-purple-500"
+      style={inputStyle}
     >
       {children}
     </select>
@@ -17,15 +28,14 @@ function Select({ value, onChange, children }) {
 }
 
 function DaySelector({ period, onChange }) {
-  const val = period?.date ?? ''
   return (
     <input
       type="date"
-      value={val}
+      value={period?.date ?? ''}
       min={FIRST_DATE}
       max={today()}
       onChange={e => onChange({ type: 'day', date: e.target.value })}
-      className="bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded px-3 py-2 focus:outline-none focus:border-purple-500"
+      style={inputStyle}
     />
   )
 }
@@ -34,9 +44,8 @@ function MonthSelector({ period, onChange }) {
   const years = availableYears()
   const year = period?.year ?? years[0]
   const months = availableMonths(year)
-
   return (
-    <div className="flex gap-2">
+    <div style={{ display: 'flex', gap: 'var(--space-xxs)' }}>
       <Select value={year} onChange={v => onChange({ type: 'month', year: +v, month: period?.month ?? months[0] })}>
         {years.map(y => <option key={y} value={y}>{y}</option>)}
       </Select>
@@ -51,9 +60,8 @@ function QuarterSelector({ period, onChange }) {
   const years = availableYears()
   const year = period?.year ?? years[0]
   const quarters = availableQuarters(year)
-
   return (
-    <div className="flex gap-2">
+    <div style={{ display: 'flex', gap: 'var(--space-xxs)' }}>
       <Select value={year} onChange={v => onChange({ type: 'quarter', year: +v, quarter: period?.quarter ?? quarters[0] })}>
         {years.map(y => <option key={y} value={y}>{y}</option>)}
       </Select>
@@ -73,10 +81,19 @@ function YearSelector({ period, onChange }) {
   )
 }
 
-export default function PeriodSelector({ view, period, onChange, label = 'Period' }) {
+export default function PeriodSelector({ view, period, onChange, label }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-gray-500 uppercase tracking-wider w-16">{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
+      <span style={{
+        fontSize: 'var(--font-size-md)',
+        color: 'var(--color-lighterish-gray)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em',
+        width: 60,
+        flexShrink: 0,
+      }}>
+        {label}
+      </span>
       {view === 'daily' && <DaySelector period={period} onChange={onChange} />}
       {view === 'monthly' && <MonthSelector period={period} onChange={onChange} />}
       {view === 'quarterly' && <QuarterSelector period={period} onChange={onChange} />}

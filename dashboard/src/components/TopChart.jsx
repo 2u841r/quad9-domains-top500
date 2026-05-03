@@ -1,17 +1,20 @@
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
-
-const PRIMARY_COLOR = '#a855f7'
-const COMPARE_COLOR = '#38bdf8'
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded p-2 text-xs">
-      <p className="text-gray-300 mb-1 font-mono">{label}</p>
+    <div style={{
+      backgroundColor: 'var(--color-darker-gray)',
+      border: '1px solid var(--color-light-gray)',
+      borderRadius: 'var(--border-radius-default)',
+      padding: 'var(--space-xxs) var(--space-xs)',
+      fontSize: 'var(--font-size-lg)',
+    }}>
+      <p style={{ color: 'var(--color-white)', marginBottom: 4, fontFamily: 'monospace' }}>{label}</p>
       {payload.map(p => (
-        <p key={p.dataKey} style={{ color: p.color }}>
+        <p key={p.dataKey} style={{ color: p.color, margin: 0 }}>
           {p.name}: #{p.value}
         </p>
       ))}
@@ -24,7 +27,7 @@ export default function TopChart({ entries, compareEntries, top = 20 }) {
   if (!slice?.length) return null
 
   const data = slice.map(e => ({
-    name: e.domain_name.replace(/\.com$/, '').replace(/\.net$/, '').slice(0, 14),
+    name: e.domain_name.replace(/\.(com|net|org)$/, '').slice(0, 14),
     primary: e.position,
     compare: compareEntries
       ? (compareEntries.find(c => c.domain_name === e.domain_name)?.position ?? null)
@@ -32,26 +35,39 @@ export default function TopChart({ entries, compareEntries, top = 20 }) {
   }))
 
   return (
-    <div className="rounded border border-gray-800 p-4">
-      <p className="text-xs text-gray-500 mb-3 uppercase tracking-wider">Top {top} domains</p>
+    <div style={{
+      borderRadius: 'var(--border-radius-default)',
+      border: '1px solid var(--color-darkest-gray)',
+      padding: 'var(--space-sm)',
+      backgroundColor: 'var(--color-darker-gray)',
+    }}>
+      <p style={{
+        fontSize: 'var(--font-size-md)',
+        color: 'var(--color-lighter-gray)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em',
+        marginBottom: 'var(--space-xs)',
+      }}>
+        Top {top} domains
+      </p>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={data} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
           <XAxis
             dataKey="name"
-            tick={{ fill: '#6b7280', fontSize: 10 }}
+            tick={{ fill: '#c9c9c9', fontSize: 11, fontFamily: 'monospace' }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             reversed
-            tick={{ fill: '#6b7280', fontSize: 10 }}
+            tick={{ fill: '#c9c9c9', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-          <Bar dataKey="primary" name="Primary" fill={PRIMARY_COLOR} radius={[2, 2, 0, 0]} maxBarSize={20} />
+          <Bar dataKey="primary" name="Primary" fill="var(--color-accent)" radius={[2, 2, 0, 0]} maxBarSize={20} />
           {compareEntries && (
-            <Bar dataKey="compare" name="Compare" fill={COMPARE_COLOR} radius={[2, 2, 0, 0]} maxBarSize={20} />
+            <Bar dataKey="compare" name="Compare" fill="var(--color-normal-gray)" radius={[2, 2, 0, 0]} maxBarSize={20} />
           )}
         </BarChart>
       </ResponsiveContainer>

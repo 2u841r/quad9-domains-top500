@@ -1,33 +1,44 @@
 import { useState } from 'react'
 
-const PAGE_SIZE = 50
-
 function DeltaBadge({ delta }) {
   if (delta === null) {
-    return <span className="text-xs text-gray-600 font-mono">new</span>
+    return <span style={{ fontSize: 'var(--font-size-lg)', color: 'var(--color-light-gray)', fontFamily: 'monospace' }}>new</span>
   }
   if (delta === 0) {
-    return <span className="text-xs text-gray-500 font-mono">-</span>
+    return <span style={{ fontSize: 'var(--font-size-lg)', color: 'var(--color-light-gray)', fontFamily: 'monospace' }}>-</span>
   }
   const up = delta > 0
   return (
-    <span className={`text-xs font-mono font-medium ${up ? 'text-green-400' : 'text-red-400'}`}>
+    <span style={{
+      fontSize: 'var(--font-size-lg)',
+      fontFamily: 'monospace',
+      fontWeight: 600,
+      color: up ? '#4ade80' : '#f87171',
+    }}>
       {up ? '▲' : '▼'}{Math.abs(delta)}
     </span>
   )
 }
 
-function ExtraInfo({ entry }) {
-  if (entry.avgPosition == null) return null
-  return (
-    <span className="text-xs text-gray-600">
-      avg {entry.avgPosition.toFixed(1)} · {entry.daysAppeared}d · best {entry.bestPosition}
-    </span>
-  )
+const thStyle = {
+  padding: 'var(--space-xxs) var(--space-sm)',
+  color: 'var(--color-lighter-gray)',
+  fontSize: 'var(--font-size-md)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  fontWeight: 'var(--font-weight)',
+  textAlign: 'left',
+  borderBottom: '1px solid var(--color-darkest-gray)',
+  whiteSpace: 'nowrap',
 }
 
-export default function DomainTable({ entries, hasCompare, loading, label }) {
-  const [page, setPage] = useState(0)
+const tdStyle = {
+  padding: 'var(--space-xxs) var(--space-sm)',
+  fontSize: 'var(--font-size-lg)',
+  borderBottom: '1px solid var(--color-darker-gray)',
+}
+
+export default function DomainTable({ entries, hasCompare, loading }) {
   const [search, setSearch] = useState('')
 
   const filtered = search
@@ -35,12 +46,10 @@ export default function DomainTable({ entries, hasCompare, loading, label }) {
     : entries
 
   const total = filtered?.length ?? 0
-  const pageCount = Math.ceil(total / PAGE_SIZE)
-  const slice = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE) ?? []
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center py-20 text-gray-500">
+      <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-lighter-gray)' }}>
         Loading...
       </div>
     )
@@ -48,99 +57,106 @@ export default function DomainTable({ entries, hasCompare, loading, label }) {
 
   if (!entries) {
     return (
-      <div className="flex-1 flex items-center justify-center py-20 text-gray-600">
-        {label ? `Select a period to load data` : 'Select a period'}
+      <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-lighter-gray)' }}>
+        Select a period to load data
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
         <input
           type="text"
           placeholder="Filter domains..."
           value={search}
-          onChange={e => { setSearch(e.target.value); setPage(0) }}
-          className="bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded px-3 py-1.5 focus:outline-none focus:border-purple-500 w-60"
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            backgroundColor: 'var(--color-darker-gray)',
+            border: '1px solid var(--color-light-gray)',
+            color: 'var(--color-lighter-gray)',
+            fontSize: 'var(--font-size-lg)',
+            fontFamily: 'var(--font-family)',
+            borderRadius: 'var(--border-radius-default)',
+            padding: 'var(--space-xxs) var(--space-xs)',
+            outline: 'none',
+            width: 240,
+          }}
         />
-        <span className="text-xs text-gray-600">{total} domains</span>
+        <span style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-normal-gray)' }}>
+          {total} domains
+        </span>
       </div>
 
-      <div className="overflow-x-auto rounded border border-gray-800">
-        <table className="w-full text-sm">
+      <div style={{
+        borderRadius: 'var(--border-radius-default)',
+        border: '1px solid var(--color-darkest-gray)',
+        overflowX: 'auto',
+      }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr className="text-left text-gray-500 text-xs uppercase tracking-wider border-b border-gray-800">
-              <th className="px-4 py-2 w-12">#</th>
-              <th className="px-4 py-2">Domain</th>
+            <tr>
+              <th style={{ ...thStyle, width: 52 }}>#</th>
+              <th style={thStyle}>Domain</th>
               {entries[0]?.avgPosition != null && (
                 <>
-                  <th className="px-4 py-2 text-right">Avg rank</th>
-                  <th className="px-4 py-2 text-right">Days</th>
-                  <th className="px-4 py-2 text-right">Best</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Avg rank</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Days</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Best</th>
                 </>
               )}
               {hasCompare && (
                 <>
-                  <th className="px-4 py-2 text-right">Compare #</th>
-                  <th className="px-4 py-2 text-right">Change</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Compare #</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Change</th>
                 </>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-900">
-            {slice.map(entry => (
-              <tr key={entry.domain_name} className="hover:bg-gray-900/50 transition-colors">
-                <td className="px-4 py-2 text-gray-500 font-mono text-xs">{entry.position}</td>
-                <td className="px-4 py-2 text-gray-200 font-mono">{entry.domain_name}</td>
-                {entry.avgPosition != null && (
-                  <>
-                    <td className="px-4 py-2 text-right text-gray-400 font-mono text-xs">
-                      {entry.avgPosition.toFixed(1)}
-                    </td>
-                    <td className="px-4 py-2 text-right text-gray-500 text-xs">
-                      {entry.daysAppeared}
-                    </td>
-                    <td className="px-4 py-2 text-right text-gray-500 text-xs">
-                      {entry.bestPosition}
-                    </td>
-                  </>
-                )}
-                {hasCompare && (
-                  <>
-                    <td className="px-4 py-2 text-right text-gray-500 font-mono text-xs">
-                      {entry.comparePosition ?? <span className="text-gray-700">n/a</span>}
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      <DeltaBadge delta={entry.delta} />
-                    </td>
-                  </>
-                )}
-              </tr>
+          <tbody>
+            {filtered?.map(entry => (
+              <Row key={entry.domain_name} entry={entry} hasCompare={hasCompare} showAgg={entries[0]?.avgPosition != null} />
             ))}
           </tbody>
         </table>
       </div>
-
-      {pageCount > 1 && (
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <button
-            onClick={() => setPage(p => Math.max(0, p - 1))}
-            disabled={page === 0}
-            className="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            Prev
-          </button>
-          <span>Page {page + 1} / {pageCount}</span>
-          <button
-            onClick={() => setPage(p => Math.min(pageCount - 1, p + 1))}
-            disabled={page === pageCount - 1}
-            className="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
+  )
+}
+
+function Row({ entry, hasCompare, showAgg }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <tr
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ backgroundColor: hovered ? 'var(--color-darker-gray)' : 'transparent', transition: 'var(--hover-transition)' }}
+    >
+      <td style={{ ...tdStyle, color: 'var(--color-lighter-gray)', fontFamily: 'monospace' }}>{entry.position}</td>
+      <td style={{ ...tdStyle, color: 'var(--color-white)', fontFamily: 'monospace' }}>{entry.domain_name}</td>
+      {showAgg && (
+        <>
+          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-white)', fontFamily: 'monospace' }}>
+            {entry.avgPosition.toFixed(1)}
+          </td>
+          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>
+            {entry.daysAppeared}
+          </td>
+          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>
+            {entry.bestPosition}
+          </td>
+        </>
+      )}
+      {hasCompare && (
+        <>
+          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)', fontFamily: 'monospace' }}>
+            {entry.comparePosition ?? <span style={{ color: 'var(--color-normal-gray)' }}>n/a</span>}
+          </td>
+          <td style={{ ...tdStyle, textAlign: 'right' }}>
+            <DeltaBadge delta={entry.delta} />
+          </td>
+        </>
+      )}
+    </tr>
   )
 }

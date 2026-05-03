@@ -10,12 +10,33 @@ import TopChart from './components/TopChart'
 
 function Header() {
   return (
-    <header className="border-b border-gray-800 px-6 py-4 flex items-center gap-3">
-      <div className="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center">
-        <span className="text-white text-xs font-bold">Q9</span>
+    <header style={{
+      backgroundColor: 'var(--color-darker-gray)',
+      borderBottom: '1px solid var(--color-darkest-gray)',
+      padding: 'var(--space-sm) var(--space-md)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 'var(--space-xs)',
+    }}>
+      <div style={{
+        width: 28,
+        height: 28,
+        borderRadius: 'var(--border-radius-default)',
+        backgroundColor: 'var(--color-accent)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <span style={{ color: 'var(--color-white)', fontSize: 11, fontWeight: 700 }}>Q9</span>
       </div>
-      <h1 className="text-lg font-semibold text-gray-100">Quad9 Top 500</h1>
-      <span className="text-gray-600 text-sm">Domain ranking explorer</span>
+      <span style={{ color: 'var(--color-white)', fontSize: 'var(--font-size-xl)', fontWeight: 600 }}>
+        Quad9 Top 500
+      </span>
+      <span style={{ color: 'var(--color-lighter-gray)', fontSize: 'var(--font-size-lg)' }}>
+        Domain ranking explorer
+      </span>
     </header>
   )
 }
@@ -34,7 +55,6 @@ export default function App() {
   const hook1 = useQuad9Data()
   const hook2 = useQuad9Data()
 
-  // Reset on view change
   useEffect(() => {
     const def = defaultPeriod(view)
     setPrimary(def)
@@ -44,7 +64,6 @@ export default function App() {
     setCompareData(null)
   }, [view])
 
-  // Load primary data when period changes
   useEffect(() => {
     if (!primary) return
     setPrimaryData(null)
@@ -55,15 +74,12 @@ export default function App() {
     })
   }, [primary ? periodId(primary) : ''])
 
-  // Load compare data
   useEffect(() => {
     if (!compare || !showCompare) {
       setCompareData(null)
       return
     }
-    hook2.fetchPeriod(compare).then(data => {
-      setCompareData(data)
-    })
+    hook2.fetchPeriod(compare).then(data => setCompareData(data))
   }, [compare ? periodId(compare) : '', showCompare])
 
   const displayEntries = primaryData && compareData
@@ -73,93 +89,75 @@ export default function App() {
   const hasCompare = !!(primaryData && compareData)
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-dark-gray)', color: 'var(--color-white)' }}>
       <Header />
       <ViewTabs view={view} onChange={setView} />
 
-      <main className="px-6 py-6 max-w-6xl mx-auto space-y-6">
+      <main style={{
+        padding: 'var(--space-md)',
+        maxWidth: 780,
+        margin: '0 auto',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--space-md)',
+      }}>
         {/* Controls */}
-        <div className="flex flex-wrap items-start gap-6">
-          <div className="space-y-3">
-            <PeriodSelector
-              view={view}
-              period={primary}
-              onChange={setPrimary}
-              label="Period"
-            />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
+            <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" />
             {showCompare && (
-              <PeriodSelector
-                view={view}
-                period={compare}
-                onChange={setCompare}
-                label="Compare"
-              />
+              <PeriodSelector view={view} period={compare} onChange={setCompare} label="Compare" />
             )}
           </div>
 
-          <div className="flex gap-3 pt-1">
-            <button
-              onClick={() => {
-                setShowCompare(v => {
-                  if (v) setCompareData(null)
-                  return !v
-                })
-              }}
-              className={`text-sm px-4 py-2 rounded border transition-colors ${
-                showCompare
-                  ? 'border-sky-500 text-sky-400 bg-sky-900/20'
-                  : 'border-gray-700 text-gray-400 hover:border-gray-600'
-              }`}
+          <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
+            <ToggleBtn
+              active={showCompare}
+              onClick={() => { setShowCompare(v => { if (v) setCompareData(null); return !v }) }}
+              activeColor="var(--color-accent)"
             >
               {showCompare ? 'Remove compare' : '+ Compare'}
-            </button>
-            <button
+            </ToggleBtn>
+            <ToggleBtn
+              active={showChart}
               onClick={() => setShowChart(v => !v)}
-              className={`text-sm px-4 py-2 rounded border transition-colors ${
-                showChart
-                  ? 'border-purple-500 text-purple-400 bg-purple-900/20'
-                  : 'border-gray-700 text-gray-400 hover:border-gray-600'
-              }`}
+              activeColor="var(--color-normal-gray)"
             >
               {showChart ? 'Hide chart' : 'Show chart'}
-            </button>
+            </ToggleBtn>
           </div>
         </div>
 
         {/* Progress */}
-        <div className="space-y-1">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xxxs)' }}>
           <ProgressBar loading={hook1.loading} progress={hook1.progress} />
-          {showCompare && (
-            <ProgressBar loading={hook2.loading} progress={hook2.progress} />
-          )}
+          {showCompare && <ProgressBar loading={hook2.loading} progress={hook2.progress} />}
         </div>
 
-        {/* Errors */}
-        {hook1.error && <p className="text-red-400 text-sm">{hook1.error}</p>}
-        {hook2.error && <p className="text-red-400 text-sm">{hook2.error}</p>}
+        {hook1.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{hook1.error}</p>}
+        {hook2.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{hook2.error}</p>}
 
         {/* Period labels */}
         {primaryData && (
-          <div className="flex gap-4 text-sm">
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-500 inline-block" />
-              <span className="text-gray-300">{periodLabel(primary)}</span>
+          <div style={{ display: 'flex', gap: 'var(--space-md)', fontSize: 'var(--font-size-lg)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-accent)', flexShrink: 0 }} />
+              <span style={{ color: 'var(--color-white)' }}>{periodLabel(primary)}</span>
             </span>
             {hasCompare && compare && (
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-sky-500 inline-block" />
-                <span className="text-gray-300">{periodLabel(compare)}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-normal-gray)', flexShrink: 0 }} />
+                <span style={{ color: 'var(--color-white)' }}>{periodLabel(compare)}</span>
               </span>
             )}
           </div>
         )}
 
-        {/* Chart */}
         {showChart && primaryData && (
           <TopChart entries={primaryData} compareEntries={compareData} />
         )}
 
-        {/* Table */}
         <DomainTable
           entries={displayEntries}
           hasCompare={hasCompare}
@@ -167,5 +165,27 @@ export default function App() {
         />
       </main>
     </div>
+  )
+}
+
+function ToggleBtn({ active, onClick, activeColor, children }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        fontSize: 'var(--font-size-lg)',
+        padding: 'var(--space-xxs) var(--space-sm)',
+        borderRadius: 'var(--border-radius-default)',
+        border: `1px solid ${active ? activeColor : 'var(--color-normal-gray)'}`,
+        color: active ? activeColor : 'var(--color-lighter-gray)',
+        backgroundColor: active ? `${activeColor}18` : 'transparent',
+        cursor: 'pointer',
+        transition: 'var(--hover-transition)',
+        fontFamily: 'var(--font-family)',
+        fontWeight: 'var(--font-weight)',
+      }}
+    >
+      {children}
+    </button>
   )
 }

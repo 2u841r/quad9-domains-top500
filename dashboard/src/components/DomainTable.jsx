@@ -96,8 +96,8 @@ export default function DomainTable({ entries, hasCompare, loading }) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th style={{ ...thStyle, width: 52, paddingRight: 'var(--space-xxxs)' }}>#</th>
-              <th style={{ ...thStyle, paddingLeft: 'var(--space-xxxs)' }}>Domain</th>
+              <th style={{ ...thStyle, width: 52, minWidth: 52, maxWidth: 52, paddingRight: 'var(--space-xxxs)', position: 'sticky', left: 0, zIndex: 2, backgroundColor: 'var(--color-darker-gray)' }}>#</th>
+              <th style={{ ...thStyle, paddingLeft: 'var(--space-xxxs)', position: 'sticky', left: 52, zIndex: 2, backgroundColor: 'var(--color-darker-gray)', boxShadow: '-4px 0 0 4px var(--color-darker-gray)' }}>Domain</th>
               {entries[0]?.avgPosition != null && (
                 <>
                   <th style={{ ...thStyle, textAlign: 'right' }}>Avg rank</th>
@@ -126,14 +126,36 @@ export default function DomainTable({ entries, hasCompare, loading }) {
 
 function Row({ entry, hasCompare, showAgg }) {
   const [hovered, setHovered] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const bg = hovered ? 'var(--color-darker-gray)' : 'var(--color-dark-gray)'
   return (
     <tr
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ backgroundColor: hovered ? 'var(--color-darker-gray)' : 'transparent', transition: 'var(--hover-transition)' }}
+      style={{ transition: 'var(--hover-transition)' }}
     >
-      <td style={{ ...tdStyle, paddingRight: 'var(--space-xxxs)', color: 'var(--color-lighter-gray)', fontFamily: 'monospace' }}>{entry.position}</td>
-      <td style={{ ...tdStyle, paddingLeft: 'var(--space-xxxs)', color: 'var(--color-white)', fontFamily: 'monospace' }}>{entry.domain_name}</td>
+      <td style={{ ...tdStyle, width: 52, minWidth: 52, maxWidth: 52, paddingRight: 'var(--space-xxxs)', position: 'sticky', left: 0, zIndex: 1, backgroundColor: bg, color: 'var(--color-lighter-gray)', fontFamily: 'monospace' }}>{entry.position}</td>
+      <td
+        onClick={() => setExpanded(v => !v)}
+        title={entry.domain_name}
+        style={{
+          ...tdStyle,
+          paddingLeft: 'var(--space-xxxs)',
+          position: 'sticky',
+          left: 52,
+          zIndex: 1,
+          backgroundColor: bg,
+          boxShadow: `-4px 0 0 4px ${bg}`,
+          color: 'var(--color-white)',
+          fontFamily: 'monospace',
+          maxWidth: 'calc(50vw - 52px)',
+          overflow: 'hidden',
+          textOverflow: expanded ? 'clip' : 'ellipsis',
+          whiteSpace: expanded ? 'normal' : 'nowrap',
+          cursor: 'pointer',
+          wordBreak: expanded ? 'break-all' : 'normal',
+        }}
+      >{entry.domain_name}</td>
       {showAgg && (
         <>
           <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-white)', fontFamily: 'monospace' }}>

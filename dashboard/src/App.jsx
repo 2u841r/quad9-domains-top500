@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { defaultPeriod, periodLabel, periodId } from './utils/dates'
+import { defaultPeriod, periodLabel, periodId, addDays } from './utils/dates'
 import { withDeltas } from './utils/aggregate'
 import { useQuad9Data } from './hooks/useQuad9Data'
 import ViewTabs from './components/ViewTabs'
@@ -104,7 +104,13 @@ export default function App() {
           <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
             <ToggleBtn
               active={showCompare}
-              onClick={() => { setShowCompare(v => { if (v) setCompareData(null); return !v }) }}
+              onClick={() => {
+                setShowCompare(v => {
+                  if (!v && primary) setCompare(adjacentPeriod(primary))
+                  if (v) setCompareData(null)
+                  return !v
+                })
+              }}
               activeColor="var(--color-accent)"
             >
               {showCompare ? 'Remove compare' : '+ Compare'}
@@ -205,4 +211,21 @@ function ToggleBtn({ active, onClick, activeColor, children }) {
       {children}
     </button>
   )
+}
+
+function adjacentPeriod(period) {
+  if (period.type === 'quarter') {
+    const q = period.quarter < 4 ? period.quarter + 1 : period.quarter - 1
+    return { type: 'quarter', year: period.year, quarter: q }
+  }
+  if (period.type === 'month') {
+    const m = period.month < 12 ? period.month + 1 : period.month - 1
+    return { type: 'month', year: period.year, month: m }
+  }
+  if (period.type === 'year') {
+    return { type: 'year', year: period.year - 1 }
+  }
+  if (period.type === 'day') {
+    return { type: 'day', date: addDays(period.date, -1) }
+  }
 }

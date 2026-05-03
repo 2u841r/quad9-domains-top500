@@ -13,7 +13,7 @@ function Header() {
     <header style={{
       backgroundColor: 'var(--color-darker-gray)',
       borderBottom: '1px solid var(--color-darkest-gray)',
-      padding: 'var(--space-sm) var(--space-md)',
+      padding: 'var(--space-sm) var(--space-xs)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -94,7 +94,7 @@ export default function App() {
       <ViewTabs view={view} onChange={setView} />
 
       <main style={{
-        padding: 'var(--space-md)',
+        padding: 'var(--space-md) var(--space-xs)',
         maxWidth: 780,
         margin: '0 auto',
         width: '100%',

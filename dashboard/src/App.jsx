@@ -19,23 +19,13 @@ function Header() {
       justifyContent: 'center',
       gap: 'var(--space-xs)',
     }}>
-      <div style={{
-        width: 28,
-        height: 28,
-        borderRadius: 'var(--border-radius-default)',
-        backgroundColor: 'var(--color-accent)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}>
-        <span style={{ color: 'var(--color-white)', fontSize: 11, fontWeight: 700 }}>Q9</span>
-      </div>
-      <span style={{ color: 'var(--color-white)', fontSize: 'var(--font-size-xl)', fontWeight: 600 }}>
-        Quad9 Top 500
-      </span>
+      <img
+        src={`${import.meta.env.BASE_URL}logo_light.svg`}
+        alt="Quad9"
+        style={{ height: 28, flexShrink: 0 }}
+      />
       <span style={{ color: 'var(--color-lighter-gray)', fontSize: 'var(--font-size-lg)' }}>
-        Domain ranking explorer
+        Top 500 Domain ranking explorer
       </span>
     </header>
   )

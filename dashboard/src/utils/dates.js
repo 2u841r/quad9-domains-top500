@@ -39,10 +39,11 @@ export function getYearRange(year) {
 }
 
 export function getPeriodRange(period) {
+  const cap = (range) => ({ start: range.start, end: range.end > today() ? today() : range.end })
   if (period.type === 'day') return { start: period.date, end: period.date }
-  if (period.type === 'month') return getMonthRange(period.year, period.month)
-  if (period.type === 'quarter') return getQuarterRange(period.year, period.quarter)
-  if (period.type === 'year') return getYearRange(period.year)
+  if (period.type === 'month') return cap(getMonthRange(period.year, period.month))
+  if (period.type === 'quarter') return cap(getQuarterRange(period.year, period.quarter))
+  if (period.type === 'year') return cap(getYearRange(period.year))
 }
 
 export function periodLabel(period) {

@@ -164,6 +164,33 @@ export default function App() {
           loading={primaryLoading && !primaryData}
         />
       </main>
+
+      <footer style={{
+        borderTop: '1px solid var(--color-darkest-gray)',
+        padding: 'var(--space-sm) var(--space-xs)',
+        textAlign: 'center',
+        fontSize: 'var(--font-size-lg)',
+        color: 'var(--color-normal-gray)',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 'var(--space-md)',
+        flexWrap: 'wrap',
+      }}>
+        <span>
+          Built by{' '}
+          <a href="https://github.com/2u841r" target="_blank" rel="noopener noreferrer"
+            style={{ color: 'var(--color-lighter-gray)', textDecoration: 'none' }}>
+            Zubair Ibn Zamir
+          </a>
+        </span>
+        <span>
+          Data by{' '}
+          <a href="https://github.com/Quad9DNS/quad9-domains-top500" target="_blank" rel="noopener noreferrer"
+            style={{ color: 'var(--color-lighter-gray)', textDecoration: 'none' }}>
+            Quad9
+          </a>
+        </span>
+      </footer>
     </div>
   )
 }

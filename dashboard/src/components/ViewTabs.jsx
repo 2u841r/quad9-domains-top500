@@ -15,7 +15,7 @@ export default function ViewTabs({ view, onChange }) {
             key={v}
             onClick={() => onChange(v)}
             style={{
-              padding: 'var(--space-xs) var(--space-md)',
+              padding: 'var(--space-xs) var(--space-xs)',
               fontSize: 'var(--font-size-lg)',
               fontFamily: 'var(--font-family)',
               fontWeight: 'var(--font-weight)',

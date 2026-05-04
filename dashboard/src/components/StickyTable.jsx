@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 
 const thBase = {
   padding: 'var(--space-xxs) var(--space-sm)',
@@ -27,6 +28,7 @@ const tdBase = {
  *   width?: number,         // px — required for sticky cols before the last one
  *   maxWidth?: string,      // css value, clips content, e.g. '33vw'
  *   expandable?: boolean,   // tap to reveal full content when truncated
+ *   href?: (value, row) => string,  // open on second tap when expandable
  *   align?: 'left'|'right'|'center',
  *   render?: (value, row) => ReactNode,
  *   style?: object,         // extra td/th styles
@@ -43,6 +45,25 @@ export default function StickyTable({
   const [hoveredRow, setHoveredRow] = useState(null)
   const [expandedCell, setExpandedCell] = useState(null) // `${rowIdx}-${key}`
 
+  const tbodyRef = useRef(null)
+  const scrollMarginRef = useRef(0)
+
+  useLayoutEffect(() => {
+    if (tbodyRef.current) {
+      scrollMarginRef.current = tbodyRef.current.getBoundingClientRect().top + window.scrollY
+    }
+  })
+
+  const count = rows?.length ?? 0
+  const shouldVirtualize = count > 150
+
+  const virtualizer = useWindowVirtualizer({
+    count: shouldVirtualize ? count : 0,
+    estimateSize: () => 33,
+    overscan: 8,
+    scrollMargin: scrollMarginRef.current,
+  })
+
   // Compute cumulative left offsets for sticky columns
   const stickyLeft = []
   let cumLeft = 0
@@ -56,6 +77,83 @@ export default function StickyTable({
       stickyLeft.push(null)
     }
   }
+
+  function renderCell(col, ci, row, ri) {
+    const cellKey = `${ri}-${col.key}`
+    const isExpanded = expandedCell === cellKey
+    const value = row[col.key]
+    const content = col.render ? col.render(value, row) : value
+    const bg = ri === hoveredRow ? bgHover : bgBase
+
+    return (
+      <td
+        key={col.key}
+        title={col.expandable ? String(value ?? '') : undefined}
+        onClick={col.expandable
+          ? e => {
+              e.stopPropagation()
+              if (isExpanded) {
+                if (col.href) window.open(col.href(value, row), '_blank', 'noopener,noreferrer')
+                setExpandedCell(null)
+              } else {
+                const truncated = e.currentTarget.scrollWidth > e.currentTarget.offsetWidth
+                if (truncated) {
+                  setExpandedCell(cellKey)
+                } else if (col.href) {
+                  window.open(col.href(value, row), '_blank', 'noopener,noreferrer')
+                }
+              }
+            }
+          : undefined}
+        style={{
+          ...tdBase,
+          textAlign: col.align ?? 'left',
+          ...col.style,
+          ...(col.sticky ? {
+            position: 'sticky',
+            left: stickyLeft[ci],
+            zIndex: 1,
+            backgroundColor: bg,
+            ...(ci === lastStickyIdx ? { boxShadow: `-4px 0 0 4px ${bg}` } : {}),
+          } : {}),
+          ...(col.maxWidth ? {
+            maxWidth: col.maxWidth,
+            overflow: 'hidden',
+            paddingRight: 0,
+            textOverflow: isExpanded ? 'clip' : 'ellipsis',
+            whiteSpace: isExpanded ? 'normal' : 'nowrap',
+            wordBreak: isExpanded ? 'break-all' : 'normal',
+            cursor: col.expandable ? 'pointer' : undefined,
+          } : {}),
+        }}
+      >
+        {content}
+      </td>
+    )
+  }
+
+  function renderRow(row, ri) {
+    const bg = ri === hoveredRow ? bgHover : bgBase
+    return (
+      <tr
+        key={ri}
+        onMouseEnter={() => setHoveredRow(ri)}
+        onMouseLeave={() => setHoveredRow(null)}
+        onClick={onRowClick ? () => onRowClick(row) : undefined}
+        style={{ cursor: onRowClick ? 'pointer' : 'default', transition: 'var(--hover-transition)' }}
+      >
+        {columns.map((col, ci) => renderCell(col, ci, row, ri))}
+      </tr>
+    )
+  }
+
+  const virtualItems = virtualizer.getVirtualItems()
+  const paddingTop = shouldVirtualize && virtualItems.length > 0
+    ? virtualItems[0].start - virtualizer.options.scrollMargin
+    : 0
+  const paddingBottom = shouldVirtualize && virtualItems.length > 0
+    ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
+    : 0
 
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -82,73 +180,13 @@ export default function StickyTable({
             ))}
           </tr>
         </thead>
-        <tbody>
-          {rows?.map((row, ri) => {
-            const bg = ri === hoveredRow ? bgHover : bgBase
-            return (
-              <tr
-                key={ri}
-                onMouseEnter={() => setHoveredRow(ri)}
-                onMouseLeave={() => setHoveredRow(null)}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                style={{ cursor: onRowClick ? 'pointer' : 'default', transition: 'var(--hover-transition)' }}
-              >
-                {columns.map((col, ci) => {
-                  const cellKey = `${ri}-${col.key}`
-                  const isExpanded = expandedCell === cellKey
-                  const value = row[col.key]
-                  const content = col.render ? col.render(value, row) : value
-
-                  return (
-                    <td
-                      key={col.key}
-                      title={col.expandable ? String(value ?? '') : undefined}
-                      onClick={col.expandable
-                        ? e => {
-                            e.stopPropagation()
-                            if (isExpanded) {
-                              if (col.href) window.open(col.href(value, row), '_blank', 'noopener,noreferrer')
-                              setExpandedCell(null)
-                            } else {
-                              const truncated = e.currentTarget.scrollWidth > e.currentTarget.offsetWidth
-                              if (truncated) {
-                                setExpandedCell(cellKey)
-                              } else if (col.href) {
-                                window.open(col.href(value, row), '_blank', 'noopener,noreferrer')
-                              }
-                            }
-                          }
-                        : undefined}
-                      style={{
-                        ...tdBase,
-                        textAlign: col.align ?? 'left',
-                        ...col.style,
-                        ...(col.sticky ? {
-                          position: 'sticky',
-                          left: stickyLeft[ci],
-                          zIndex: 1,
-                          backgroundColor: bg,
-                          // seal gap to the left on last sticky column
-                          ...(ci === lastStickyIdx ? { boxShadow: `-4px 0 0 4px ${bg}` } : {}),
-                        } : {}),
-                        ...(col.maxWidth ? {
-                          maxWidth: col.maxWidth,
-                          overflow: 'hidden',
-                          paddingRight: 0,
-                          textOverflow: isExpanded ? 'clip' : 'ellipsis',
-                          whiteSpace: isExpanded ? 'normal' : 'nowrap',
-                          wordBreak: isExpanded ? 'break-all' : 'normal',
-                          cursor: col.expandable ? 'pointer' : undefined,
-                        } : {}),
-                      }}
-                    >
-                      {content}
-                    </td>
-                  )
-                })}
-              </tr>
-            )
-          })}
+        <tbody ref={tbodyRef}>
+          {paddingTop > 0 && <tr><td style={{ height: paddingTop }} /></tr>}
+          {shouldVirtualize
+            ? virtualItems.map(vr => renderRow(rows[vr.index], vr.index))
+            : rows?.map((row, ri) => renderRow(row, ri))
+          }
+          {paddingBottom > 0 && <tr><td style={{ height: paddingBottom }} /></tr>}
         </tbody>
       </table>
     </div>

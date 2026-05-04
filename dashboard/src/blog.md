@@ -70,11 +70,13 @@ The full history sits at around 470 KB. After the initial load, switching betwee
 
 The frontend is built with Vite and React, deployed as a static site on GitHub Pages with a custom domain. No backend, no database. Everything runs in the browser.
 
-A GitHub Actions workflow pulls new data from the upstream Quad9 repository every day at 10:01 UTC, then rebuilds and redeploys. The site stays current without any manual steps.
-
-The table has sticky columns for rank and domain name so you can scroll right on mobile without losing context. Domain names that are too long to fit get truncated: one tap expands the full name, a second tap opens the domain in a new tab.
+A GitHub Actions workflow pulls new data from the upstream Quad9 repository every day at 11:18 UTC, then rebuilds and redeploys. The site stays current without any manual steps.
 
 Compare mode lets you put two time periods side by side. The table shows both ranks and a delta column. Domains that appear in one period but not the other are marked.
+
+## Interface Decisions
+
+Data like this is best on a desktop monitor. But people check things on phones too, and a dashboard that falls apart on mobile only half works. The rank and domain columns stay sticky so you never lose context while scrolling right. Long domain names truncate with an ellipsis: one tap expands, a second tap opens the site. Section headings and column headers stay fixed as you scroll down through long tables. Rows highlight on hover. Small things, but they add up.
 
 ## Rendering Performance
 

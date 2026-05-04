@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { loadAllBin, getRawData } from '../hooks/useQuad9Data'
 import { computeFacts } from '../utils/facts'
 import StickyTable from './StickyTable'
@@ -37,6 +37,26 @@ const tdStyle = {
   padding: 'var(--space-xxs) var(--space-sm)',
   fontSize: 'var(--font-size-lg)',
   borderBottom: '1px solid var(--color-darker-gray)',
+}
+
+function Section({ heading, children }) {
+  const headingRef = useRef(null)
+  const [headingH, setHeadingH] = useState(0)
+  useEffect(() => {
+    if (!headingRef.current) return
+    const ro = new ResizeObserver(() => setHeadingH(headingRef.current.offsetHeight))
+    ro.observe(headingRef.current)
+    setHeadingH(headingRef.current.offsetHeight)
+    return () => ro.disconnect()
+  }, [])
+  return (
+    <div style={sectionStyle}>
+      <div ref={headingRef} style={{ ...headingStyle, position: 'sticky', top: 0, zIndex: 10 }}>
+        {heading}
+      </div>
+      {children({ theadTop: headingH })}
+    </div>
+  )
 }
 
 function Stat({ label, value }) {
@@ -140,43 +160,44 @@ export default function Facts() {
       </div>
 
       {/* Most consistent */}
-      <div style={sectionStyle}>
-        <div style={headingStyle}>Most consistent — top 100 by days in top 500 (no domain hit 100%)</div>
-        <StickyTable
-          columns={[
-            {
-              key: 'domain',
-              label: 'Domain',
-              style: { fontFamily: 'monospace', color: 'var(--color-white)' },
-              render: v => <a href={`https://${v}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{v}</a>,
-            },
-            {
-              key: 'count',
-              label: 'Days',
-              align: 'right',
-              style: { color: 'var(--color-lighter-gray)' },
-              render: (v, row) => `${v}/${facts.totalDays}`,
-            },
-            {
-              key: 'pct',
-              label: 'Coverage',
-              align: 'right',
-              style: { color: 'var(--color-accent)', fontFamily: 'monospace' },
-              render: v => `${(v * 100).toFixed(1)}%`,
-            },
-          ]}
-          rows={facts.mostConsistent}
-        />
-      </div>
+      <Section heading="Most consistent — top 100 by days in top 500 (no domain hit 100%)">
+        {({ theadTop }) => (
+          <StickyTable
+            theadTop={theadTop}
+            columns={[
+              {
+                key: 'domain',
+                label: 'Domain',
+                style: { fontFamily: 'monospace', color: 'var(--color-white)' },
+                render: v => <a href={`https://${v}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{v}</a>,
+              },
+              {
+                key: 'count',
+                label: 'Days',
+                align: 'right',
+                style: { color: 'var(--color-lighter-gray)' },
+                render: (v, row) => `${v}/${facts.totalDays}`,
+              },
+              {
+                key: 'pct',
+                label: 'Coverage',
+                align: 'right',
+                style: { color: 'var(--color-accent)', fontFamily: 'monospace' },
+                render: v => `${(v * 100).toFixed(1)}%`,
+              },
+            ]}
+            rows={facts.mostConsistent}
+          />
+        )}
+      </Section>
 
       <TldSection tlds={facts.tlds} tldDomains={facts.tldDomains} total={facts.totalUniqueDomains} onTldClick={(tld, domains) => setModal({ title: `.${tld} domains`, domains })} />
 
       {/* Day of week patterns */}
-      <div style={sectionStyle}>
-        <div style={headingStyle}>
-          Day-of-week patterns — top 100 consistent domains
-        </div>
+      <Section heading="Day-of-week patterns — top 100 consistent domains">
+        {({ theadTop }) => (
         <StickyTable
+          theadTop={theadTop}
           minWidth={520}
           columns={[
             {
@@ -224,7 +245,8 @@ export default function Facts() {
           ]}
           rows={facts.dowPatterns}
         />
-      </div>
+        )}
+      </Section>
 
       {modal && <DomainListModal title={modal.title} domains={modal.domains} onClose={() => setModal(null)} />}
     </div>

@@ -41,6 +41,7 @@ export default function StickyTable({
   bgBase = 'var(--color-dark-gray)',
   bgHover = 'var(--color-darker-gray)',
   minWidth,
+  theadTop,
 }) {
   const [hoveredRow, setHoveredRow] = useState(null)
   const [expandedCell, setExpandedCell] = useState(null) // `${rowIdx}-${key}`
@@ -168,10 +169,15 @@ export default function StickyTable({
                 minWidth: col.width,
                 maxWidth: col.width,
                 ...col.style,
+                ...(theadTop !== undefined ? {
+                  position: 'sticky',
+                  top: theadTop,
+                  zIndex: col.sticky ? 4 : 3,
+                } : {}),
                 ...(col.sticky ? {
                   position: 'sticky',
                   left: stickyLeft[ci],
-                  zIndex: 2,
+                  zIndex: theadTop !== undefined ? 4 : 2,
                   backgroundColor: 'var(--color-darker-gray)',
                 } : {}),
               }}>

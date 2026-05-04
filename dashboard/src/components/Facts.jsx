@@ -221,14 +221,14 @@ export default function Facts() {
               key: 'bestDay',
               label: 'Best day',
               align: 'center',
-              style: { fontFamily: 'monospace', color: '#4ade80' },
+              style: { fontFamily: 'monospace', color: '#4ade80', whiteSpace: 'nowrap' },
               render: (v, row) => <>{v} <span style={{ color: 'var(--color-normal-gray)' }}>#{row.bestAvg.toFixed(0)}</span></>,
             },
             {
               key: 'worstDay',
               label: 'Worst day',
               align: 'center',
-              style: { fontFamily: 'monospace', color: '#f87171' },
+              style: { fontFamily: 'monospace', color: '#f87171', whiteSpace: 'nowrap' },
               render: (v, row) => <>{v} <span style={{ color: 'var(--color-normal-gray)' }}>#{row.worstAvg.toFixed(0)}</span></>,
             },
             {

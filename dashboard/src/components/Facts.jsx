@@ -75,6 +75,7 @@ export default function Facts() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [lenModal, setLenModal] = useState(null)
+  const [expandedDomain, setExpandedDomain] = useState(null)
 
   useEffect(() => {
     setLoading(true)
@@ -179,7 +180,7 @@ export default function Facts() {
             <tbody>
               {facts.dowPatterns.map(p => (
                 <tr key={p.domain}>
-                  <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)', whiteSpace: 'nowrap', position: 'sticky', left: 0, zIndex: 1, backgroundColor: 'var(--color-dark-gray)' }}>{p.domain}</td>
+                  <td onClick={() => setExpandedDomain(v => v === p.domain ? null : p.domain)} style={{ ...tdStyle, paddingRight: 0, fontFamily: 'monospace', color: 'var(--color-white)', position: 'sticky', left: 0, zIndex: 1, backgroundColor: 'var(--color-dark-gray)', maxWidth: '33vw', overflow: 'hidden', textOverflow: expandedDomain === p.domain ? 'clip' : 'ellipsis', whiteSpace: expandedDomain === p.domain ? 'normal' : 'nowrap', wordBreak: expandedDomain === p.domain ? 'break-all' : 'normal', cursor: 'pointer' }}>{p.domain}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', fontFamily: 'monospace', color: 'var(--color-lighter-gray)' }}>
                     {p.avgOverall.toFixed(1)}
                   </td>

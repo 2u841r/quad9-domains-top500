@@ -81,11 +81,12 @@ export default function App() {
   const hasCompare = !!(primaryData && compareData)
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-dark-gray)', color: 'var(--color-white)' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-dark-gray)', color: 'var(--color-white)', display: 'flex', flexDirection: 'column' }}>
       <Header />
       <ViewTabs view={view} onChange={setView} />
 
       <main style={{
+        flex: 1,
         padding: 'var(--space-md) var(--space-xs)',
         maxWidth: view === 'facts' ? 960 : view === 'blog' ? 780 : 780,
         margin: '0 auto',

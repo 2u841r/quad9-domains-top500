@@ -110,24 +110,32 @@ export default function Facts() {
         <Stat label="Unique domains ever seen" value={facts.totalUniqueDomains.toLocaleString()} />
         <Stat label="Domains with hyphens" value={facts.hyphenCount} />
         <Stat label="Domains with numbers" value={facts.numericCount} />
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Letters (without TLD)</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Domains</th>
-              </tr>
-            </thead>
-            <tbody>
-              {facts.lengthDist.map(([len, count]) => (
-                <tr key={len} onClick={() => setLenModal({ len, domains: facts.lenDomains.get(len) })}
-                  style={{ cursor: 'pointer' }}>
-                  <td style={{ ...tdStyle, color: 'var(--color-lighter-gray)', fontFamily: 'monospace' }}>{len}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-white)' }}>{count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={thStyle}>Letters (without TLD)</div>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 1,
+          backgroundColor: 'var(--color-darkest-gray)',
+          borderTop: '1px solid var(--color-darkest-gray)',
+        }} className="len-grid">
+          {facts.lengthDist.map(([len, count]) => (
+            <div
+              key={len}
+              onClick={() => setLenModal({ len, domains: facts.lenDomains.get(len) })}
+              style={{
+                backgroundColor: 'var(--color-dark-gray)',
+                padding: 'var(--space-xxs) var(--space-xs)',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+              }}
+            >
+              <span style={{ color: 'var(--color-normal-gray)', fontSize: 'var(--font-size-md)', fontFamily: 'monospace' }}>{len} letters</span>
+              <span style={{ color: 'var(--color-white)', fontFamily: 'monospace', fontWeight: 600 }}>{count}</span>
+            </div>
+          ))}
         </div>
       </div>
 

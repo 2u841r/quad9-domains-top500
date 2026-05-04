@@ -57,3 +57,10 @@ body {
   font-family: var(--font-family);
   font-weight: var(--font-weight);
 }
+
+@media (min-width: 600px) {
+  .len-grid { grid-template-columns: repeat(6, 1fr) !important; }
+}
+@media (min-width: 960px) {
+  .len-grid { grid-template-columns: repeat(8, 1fr) !important; }
+}

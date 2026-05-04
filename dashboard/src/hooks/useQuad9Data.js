@@ -23,7 +23,7 @@ let allBinPromise = null
 let allBuf = null      // Uint16Array
 let allManifest = null // string[]
 
-function loadAllBin() {
+export function loadAllBin() {
   if (!allBinPromise) {
     allBinPromise = Promise.all([
       loadDict(),
@@ -63,6 +63,10 @@ async function fetchDay(date) {
   } catch {
     return null
   }
+}
+
+export function getRawData() {
+  return { allBuf, dict, manifest: allManifest }
 }
 
 export function useQuad9Data() {

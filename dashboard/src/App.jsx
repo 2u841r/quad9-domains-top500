@@ -7,6 +7,7 @@ import PeriodSelector from './components/PeriodSelector'
 import DomainTable from './components/DomainTable'
 import ProgressBar from './components/ProgressBar'
 import TopChart from './components/TopChart'
+import Facts from './components/Facts'
 
 function Header() {
   return (
@@ -85,80 +86,82 @@ export default function App() {
 
       <main style={{
         padding: 'var(--space-md) var(--space-xs)',
-        maxWidth: 780,
+        maxWidth: view === 'facts' ? 960 : 780,
         margin: '0 auto',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-md)',
       }}>
-        {/* Controls */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
+        {view === 'facts' ? <Facts /> : <>
+          {/* Controls */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
-            <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" />
-            {showCompare && (
-              <PeriodSelector view={view} period={compare} onChange={setCompare} label="Compare" />
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
+              <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" />
+              {showCompare && (
+                <PeriodSelector view={view} period={compare} onChange={setCompare} label="Compare" />
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
+              <ToggleBtn
+                active={showCompare}
+                onClick={() => {
+                  setShowCompare(v => {
+                    if (!v && primary) setCompare(adjacentPeriod(primary))
+                    if (v) setCompareData(null)
+                    return !v
+                  })
+                }}
+                activeColor="var(--color-accent)"
+              >
+                {showCompare ? 'Remove compare' : '+ Compare'}
+              </ToggleBtn>
+              <ToggleBtn
+                active={showChart}
+                onClick={() => setShowChart(v => !v)}
+                activeColor="var(--color-normal-gray)"
+              >
+                {showChart ? 'Hide chart' : 'Show chart'}
+              </ToggleBtn>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
-            <ToggleBtn
-              active={showCompare}
-              onClick={() => {
-                setShowCompare(v => {
-                  if (!v && primary) setCompare(adjacentPeriod(primary))
-                  if (v) setCompareData(null)
-                  return !v
-                })
-              }}
-              activeColor="var(--color-accent)"
-            >
-              {showCompare ? 'Remove compare' : '+ Compare'}
-            </ToggleBtn>
-            <ToggleBtn
-              active={showChart}
-              onClick={() => setShowChart(v => !v)}
-              activeColor="var(--color-normal-gray)"
-            >
-              {showChart ? 'Hide chart' : 'Show chart'}
-            </ToggleBtn>
+          {/* Progress */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xxxs)' }}>
+            <ProgressBar loading={hook1.loading} progress={hook1.progress} />
+            {showCompare && <ProgressBar loading={hook2.loading} progress={hook2.progress} />}
           </div>
-        </div>
 
-        {/* Progress */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xxxs)' }}>
-          <ProgressBar loading={hook1.loading} progress={hook1.progress} />
-          {showCompare && <ProgressBar loading={hook2.loading} progress={hook2.progress} />}
-        </div>
+          {hook1.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{hook1.error}</p>}
+          {hook2.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{hook2.error}</p>}
 
-        {hook1.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{hook1.error}</p>}
-        {hook2.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{hook2.error}</p>}
-
-        {/* Period labels */}
-        {primaryData && (
-          <div style={{ display: 'flex', gap: 'var(--space-md)', fontSize: 'var(--font-size-lg)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)' }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-accent)', flexShrink: 0 }} />
-              <span style={{ color: 'var(--color-white)' }}>{periodLabel(primary)}</span>
-            </span>
-            {hasCompare && compare && (
+          {/* Period labels */}
+          {primaryData && (
+            <div style={{ display: 'flex', gap: 'var(--space-md)', fontSize: 'var(--font-size-lg)' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-normal-gray)', flexShrink: 0 }} />
-                <span style={{ color: 'var(--color-white)' }}>{periodLabel(compare)}</span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-accent)', flexShrink: 0 }} />
+                <span style={{ color: 'var(--color-white)' }}>{periodLabel(primary)}</span>
               </span>
-            )}
-          </div>
-        )}
+              {hasCompare && compare && (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-normal-gray)', flexShrink: 0 }} />
+                  <span style={{ color: 'var(--color-white)' }}>{periodLabel(compare)}</span>
+                </span>
+              )}
+            </div>
+          )}
 
-        {showChart && primaryData && (
-          <TopChart entries={primaryData} compareEntries={compareData} />
-        )}
+          {showChart && primaryData && (
+            <TopChart entries={primaryData} compareEntries={compareData} />
+          )}
 
-        <DomainTable
-          entries={displayEntries}
-          hasCompare={hasCompare}
-          loading={primaryLoading && !primaryData}
-        />
+          <DomainTable
+            entries={displayEntries}
+            hasCompare={hasCompare}
+            loading={primaryLoading && !primaryData}
+          />
+        </>}
       </main>
 
       <footer style={{

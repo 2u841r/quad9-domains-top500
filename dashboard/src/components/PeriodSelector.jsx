@@ -40,7 +40,7 @@ function DaySelector({ period, onChange }) {
   )
 }
 
-function MonthSelector({ period, onChange }) {
+function MonthSelector({ period, onChange, exclude }) {
   const years = availableYears()
   const year = period?.year ?? years[0]
   const months = availableMonths(year)
@@ -50,13 +50,17 @@ function MonthSelector({ period, onChange }) {
         {years.map(y => <option key={y} value={y}>{y}</option>)}
       </Select>
       <Select value={period?.month ?? months[0]} onChange={v => onChange({ type: 'month', year, month: +v })}>
-        {months.map(m => <option key={m} value={m}>{MONTH_NAMES[m]}</option>)}
+        {months.map(m => (
+          <option key={m} value={m} disabled={exclude?.year === year && exclude?.month === m}>
+            {MONTH_NAMES[m]}
+          </option>
+        ))}
       </Select>
     </div>
   )
 }
 
-function QuarterSelector({ period, onChange }) {
+function QuarterSelector({ period, onChange, exclude }) {
   const years = availableYears()
   const year = period?.year ?? years[0]
   const quarters = availableQuarters(year)
@@ -66,22 +70,30 @@ function QuarterSelector({ period, onChange }) {
         {years.map(y => <option key={y} value={y}>{y}</option>)}
       </Select>
       <Select value={period?.quarter ?? quarters[0]} onChange={v => onChange({ type: 'quarter', year, quarter: +v })}>
-        {quarters.map(q => <option key={q} value={q}>Q{q}</option>)}
+        {quarters.map(q => (
+          <option key={q} value={q} disabled={exclude?.year === year && exclude?.quarter === q}>
+            Q{q}
+          </option>
+        ))}
       </Select>
     </div>
   )
 }
 
-function YearSelector({ period, onChange }) {
+function YearSelector({ period, onChange, exclude }) {
   const years = availableYears()
   return (
     <Select value={period?.year ?? years[0]} onChange={v => onChange({ type: 'year', year: +v })}>
-      {years.map(y => <option key={y} value={y}>{y}</option>)}
+      {years.map(y => (
+        <option key={y} value={y} disabled={exclude?.year === y}>
+          {y}
+        </option>
+      ))}
     </Select>
   )
 }
 
-export default function PeriodSelector({ view, period, onChange, label }) {
+export default function PeriodSelector({ view, period, onChange, label, exclude }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
       <span style={{
@@ -95,9 +107,9 @@ export default function PeriodSelector({ view, period, onChange, label }) {
         {label}
       </span>
       {view === 'daily' && <DaySelector period={period} onChange={onChange} />}
-      {view === 'monthly' && <MonthSelector period={period} onChange={onChange} />}
-      {view === 'quarterly' && <QuarterSelector period={period} onChange={onChange} />}
-      {view === 'yearly' && <YearSelector period={period} onChange={onChange} />}
+      {view === 'monthly' && <MonthSelector period={period} onChange={onChange} exclude={exclude} />}
+      {view === 'quarterly' && <QuarterSelector period={period} onChange={onChange} exclude={exclude} />}
+      {view === 'yearly' && <YearSelector period={period} onChange={onChange} exclude={exclude} />}
     </div>
   )
 }

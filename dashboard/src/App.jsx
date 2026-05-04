@@ -98,9 +98,9 @@ export default function App() {
           {/* Controls */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
-              <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" />
+              <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" exclude={showCompare ? compare : null} />
               {showCompare && (
-                <PeriodSelector view={view} period={compare} onChange={setCompare} label="Compare" />
+                <PeriodSelector view={view} period={compare} onChange={setCompare} label="Compare" exclude={primary} />
               )}
             </div>
 
@@ -219,12 +219,12 @@ function ToggleBtn({ active, onClick, activeColor, children }) {
 
 function adjacentPeriod(period) {
   if (period.type === 'quarter') {
-    const q = period.quarter < 4 ? period.quarter + 1 : period.quarter - 1
-    return { type: 'quarter', year: period.year, quarter: q }
+    if (period.quarter > 1) return { type: 'quarter', year: period.year, quarter: period.quarter - 1 }
+    return { type: 'quarter', year: period.year - 1, quarter: 4 }
   }
   if (period.type === 'month') {
-    const m = period.month < 12 ? period.month + 1 : period.month - 1
-    return { type: 'month', year: period.year, month: m }
+    if (period.month > 1) return { type: 'month', year: period.year, month: period.month - 1 }
+    return { type: 'month', year: period.year - 1, month: 12 }
   }
   if (period.type === 'year') {
     return { type: 'year', year: period.year - 1 }

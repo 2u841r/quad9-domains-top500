@@ -44,10 +44,14 @@ export default function StickyTable({
   theadTop,
 }) {
   const [hoveredRow, setHoveredRow] = useState(null)
-  const [expandedCell, setExpandedCell] = useState(null) // `${rowIdx}-${key}`
+  const [expandedCell, setExpandedCell] = useState(null)
+  const [bodyTableWidth, setBodyTableWidth] = useState(null)
 
   const tbodyRef = useRef(null)
+  const bodyTableRef = useRef(null)
   const scrollMarginRef = useRef(0)
+  const bodyScrollRef = useRef(null)
+  const stickyHeadRef = useRef(null)
 
   useLayoutEffect(() => {
     if (tbodyRef.current) {
@@ -77,6 +81,53 @@ export default function StickyTable({
     } else {
       stickyLeft.push(null)
     }
+  }
+
+  // Keep sticky header table width in sync with body table (body may be wider than viewport)
+  useLayoutEffect(() => {
+    if (theadTop === undefined || !bodyTableRef.current) return
+    const ro = new ResizeObserver(() => {
+      const w = bodyTableRef.current?.offsetWidth
+      if (w) setBodyTableWidth(prev => prev === w ? prev : w)
+    })
+    ro.observe(bodyTableRef.current)
+    setBodyTableWidth(bodyTableRef.current.offsetWidth)
+    return () => ro.disconnect()
+  }, [theadTop, columns.length])
+
+  function onBodyScroll() {
+    if (stickyHeadRef.current && bodyScrollRef.current) {
+      stickyHeadRef.current.scrollLeft = bodyScrollRef.current.scrollLeft
+    }
+  }
+
+  // Shared colgroup — same col widths in both header and body tables
+  // colWidth: CSS value for sizing (e.g. '40%', 200); width: px used for sticky left offsets
+  const colgroup = (
+    <colgroup>
+      {columns.map(col => {
+        const w = col.colWidth ?? col.width
+        return <col key={col.key} style={w ? { width: w } : undefined} />
+      })}
+    </colgroup>
+  )
+
+  function renderTh(col, ci) {
+    return (
+      <th key={col.key} style={{
+        ...thBase,
+        textAlign: col.align ?? 'left',
+        ...col.style,
+        ...(col.sticky ? {
+          position: 'sticky',
+          left: stickyLeft[ci],
+          zIndex: 2,
+          backgroundColor: 'var(--color-darker-gray)',
+        } : {}),
+      }}>
+        {col.label}
+      </th>
+    )
   }
 
   function renderCell(col, ci, row, ri) {
@@ -134,7 +185,6 @@ export default function StickyTable({
   }
 
   function renderRow(row, ri) {
-    const bg = ri === hoveredRow ? bgHover : bgBase
     return (
       <tr
         key={ri}
@@ -156,35 +206,46 @@ export default function StickyTable({
     ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
     : 0
 
+  const tableStyle = { width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', minWidth }
+
+  if (theadTop !== undefined) {
+    return (
+      <div>
+        {/* Sticky header — outside overflow-x:auto, position:sticky works */}
+        <div
+          ref={stickyHeadRef}
+          style={{ position: 'sticky', top: theadTop, zIndex: 3, overflowX: 'hidden' }}
+        >
+          <table style={{ ...tableStyle, width: bodyTableWidth ?? '100%' }}>
+            {colgroup}
+            <thead>
+              <tr>{columns.map((col, ci) => renderTh(col, ci))}</tr>
+            </thead>
+          </table>
+        </div>
+        {/* Scrollable body */}
+        <div ref={bodyScrollRef} style={{ overflowX: 'auto' }} onScroll={onBodyScroll}>
+          <table ref={bodyTableRef} style={tableStyle}>
+            {colgroup}
+            <tbody ref={tbodyRef}>
+              {paddingTop > 0 && <tr><td style={{ height: paddingTop }} /></tr>}
+              {shouldVirtualize
+                ? virtualItems.map(vr => renderRow(rows[vr.index], vr.index))
+                : rows?.map((row, ri) => renderRow(row, ri))
+              }
+              {paddingBottom > 0 && <tr><td style={{ height: paddingBottom }} /></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div style={{ overflowX: theadTop !== undefined ? 'clip' : 'auto' }}>
+    <div style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth }}>
         <thead>
-          <tr>
-            {columns.map((col, ci) => (
-              <th key={col.key} style={{
-                ...thBase,
-                textAlign: col.align ?? 'left',
-                width: col.width,
-                minWidth: col.width,
-                maxWidth: col.width,
-                ...col.style,
-                ...(theadTop !== undefined ? {
-                  position: 'sticky',
-                  top: theadTop,
-                  zIndex: col.sticky ? 4 : 3,
-                } : {}),
-                ...(col.sticky ? {
-                  position: 'sticky',
-                  left: stickyLeft[ci],
-                  zIndex: theadTop !== undefined ? 4 : 2,
-                  backgroundColor: 'var(--color-darker-gray)',
-                } : {}),
-              }}>
-                {col.label}
-              </th>
-            ))}
-          </tr>
+          <tr>{columns.map((col, ci) => renderTh(col, ci))}</tr>
         </thead>
         <tbody ref={tbodyRef}>
           {paddingTop > 0 && <tr><td style={{ height: paddingTop }} /></tr>}

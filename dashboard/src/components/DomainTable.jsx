@@ -48,6 +48,9 @@ export default function DomainTable({ entries, hasCompare, loading }) {
 
   const showAgg = entries[0]?.avgPosition != null
 
+  // 52 (#) + 180 (domain min) + fixed data col widths
+  const minWidth = 52 + 180 + (showAgg ? 72 + 56 + 56 : 0) + (hasCompare ? 84 + 72 : 0)
+
   const columns = [
     {
       key: 'position',
@@ -63,12 +66,14 @@ export default function DomainTable({ entries, hasCompare, loading }) {
       maxWidth: 'calc(50vw - 52px)',
       expandable: true,
       href: v => `https://${v}`,
+      colWidth: 'calc(50vw - 52px)',
       style: { color: 'var(--color-white)', fontFamily: 'monospace', paddingLeft: 'var(--space-xxxs)' },
     },
     ...(showAgg ? [
       {
         key: 'avgPosition',
         label: 'Avg rank',
+        colWidth: 72,
         align: 'right',
         style: { color: 'var(--color-white)', fontFamily: 'monospace' },
         render: v => v.toFixed(1),
@@ -76,12 +81,14 @@ export default function DomainTable({ entries, hasCompare, loading }) {
       {
         key: 'daysAppeared',
         label: 'Days',
+        colWidth: 56,
         align: 'right',
         style: { color: 'var(--color-lighter-gray)' },
       },
       {
         key: 'bestPosition',
         label: 'Best',
+        colWidth: 56,
         align: 'right',
         style: { color: 'var(--color-lighter-gray)' },
       },
@@ -90,6 +97,7 @@ export default function DomainTable({ entries, hasCompare, loading }) {
       {
         key: 'comparePosition',
         label: 'Compare #',
+        colWidth: 84,
         align: 'right',
         style: { color: 'var(--color-lighter-gray)', fontFamily: 'monospace' },
         render: v => v ?? <span style={{ color: 'var(--color-normal-gray)' }}>n/a</span>,
@@ -97,6 +105,7 @@ export default function DomainTable({ entries, hasCompare, loading }) {
       {
         key: 'delta',
         label: 'Change',
+        colWidth: 72,
         align: 'right',
         render: v => <DeltaBadge delta={v} />,
       },
@@ -131,11 +140,12 @@ export default function DomainTable({ entries, hasCompare, loading }) {
       <div style={{
         borderRadius: 'var(--border-radius-default)',
         border: '1px solid var(--color-darkest-gray)',
-        overflow: 'hidden',
       }}>
         <StickyTable
           columns={columns}
           rows={filtered}
+          theadTop={0}
+          minWidth={minWidth}
           bgBase="var(--color-dark-gray)"
           bgHover="var(--color-darker-gray)"
         />

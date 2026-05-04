@@ -173,8 +173,10 @@ export default function Facts() {
               label: 'Domain',
               sticky: true,
               maxWidth: '33vw',
-              expandable: true,
               style: { fontFamily: 'monospace', color: 'var(--color-white)' },
+              render: v => (
+                <a href={`https://${v}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{v}</a>
+              ),
             },
             {
               key: 'avgOverall',

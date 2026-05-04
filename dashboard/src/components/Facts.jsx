@@ -146,7 +146,9 @@ export default function Facts() {
             <tbody>
               {facts.mostConsistent.map(({ domain, count, pct }) => (
                 <tr key={domain}>
-                  <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)' }}>{domain}</td>
+                  <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)' }}>
+                    <a href={`https://${domain}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{domain}</a>
+                  </td>
                   <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>{count}/{facts.totalDays}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-accent)', fontFamily: 'monospace' }}>
                     {(pct * 100).toFixed(1)}%
@@ -261,12 +263,14 @@ function LenModal({ len, domains, onClose }) {
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
           {slice.map(d => (
-            <div key={d} style={{
+            <a key={d} href={`https://${d}`} target="_blank" rel="noopener noreferrer" style={{
+              display: 'block',
               padding: 'var(--space-xxs) var(--space-sm)',
               borderBottom: '1px solid var(--color-darkest-gray)',
               fontFamily: 'monospace', fontSize: 'var(--font-size-lg)',
               color: 'var(--color-white)',
-            }}>{d}</div>
+              textDecoration: 'none',
+            }}>{d}</a>
           ))}
         </div>
 

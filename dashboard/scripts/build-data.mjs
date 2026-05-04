@@ -56,6 +56,14 @@ for (const { date, entries } of days) {
 // Write manifest — sorted date list
 writeFileSync(join(OUT, 'manifest.json'), JSON.stringify(days.map(d => d.date)), 'utf8')
 
+// Write all.bin — all days concatenated, same order as manifest
+const allBuf = Buffer.concat(days.map(({ entries }) => {
+  const buf = Buffer.alloc(entries.length * 2)
+  for (let i = 0; i < entries.length; i++) buf.writeUInt16LE(getId(entries[i].domain_name), i * 2)
+  return buf
+}))
+writeFileSync(join(OUT, 'all.bin'), allBuf)
+
 const dictBytes = idToDomain.join('\n').length
 const dayBytes = (days[0]?.entries.length ?? 500) * 2
 console.log(`✓ ${days.length} days | ${idToDomain.length} unique domains`)

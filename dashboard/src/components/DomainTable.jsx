@@ -61,17 +61,9 @@ export default function DomainTable({ entries, hasCompare, loading }) {
       label: 'Domain',
       sticky: true,
       maxWidth: 'calc(50vw - 52px)',
+      expandable: true,
+      href: v => `https://${v}`,
       style: { color: 'var(--color-white)', fontFamily: 'monospace', paddingLeft: 'var(--space-xxxs)' },
-      render: v => (
-        <a
-          href={`https://${v}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: 'inherit', textDecoration: 'none' }}
-        >
-          {v}
-        </a>
-      ),
     },
     ...(showAgg ? [
       {

@@ -104,7 +104,15 @@ export default function StickyTable({
                       key={col.key}
                       title={col.expandable ? String(value ?? '') : undefined}
                       onClick={col.expandable
-                        ? e => { e.stopPropagation(); setExpandedCell(isExpanded ? null : cellKey) }
+                        ? e => {
+                            e.stopPropagation()
+                            if (isExpanded && col.href) {
+                              window.open(col.href(value, row), '_blank', 'noopener,noreferrer')
+                              setExpandedCell(null)
+                            } else {
+                              setExpandedCell(isExpanded ? null : cellKey)
+                            }
+                          }
                         : undefined}
                       style={{
                         ...tdBase,

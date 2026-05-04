@@ -36,11 +36,15 @@ export function computeFacts(allBuf, dict, manifest) {
 
   const lenDomains = new Map() // length → domain[]
 
+  const tldDomains = new Map()
+
   for (const [id] of dayCount) {
     const domain = dict[id]
     const tld    = domain.split('.').pop()
     const label  = domain.slice(0, domain.lastIndexOf('.'))
     tldMap.set(tld, (tldMap.get(tld) ?? 0) + 1)
+    if (!tldDomains.has(tld)) tldDomains.set(tld, [])
+    tldDomains.get(tld).push(domain)
     lenMap.set(label.length, (lenMap.get(label.length) ?? 0) + 1)
     if (!lenDomains.has(label.length)) lenDomains.set(label.length, [])
     lenDomains.get(label.length).push(domain)
@@ -50,6 +54,7 @@ export function computeFacts(allBuf, dict, manifest) {
 
   const lengthDist = [...lenMap.entries()].sort((a, b) => a[0] - b[0])
   for (const arr of lenDomains.values()) arr.sort()
+  for (const arr of tldDomains.values()) arr.sort()
 
   const tlds = [...tldMap.entries()].sort((a, b) => b[1] - a[1])
 
@@ -88,6 +93,7 @@ export function computeFacts(allBuf, dict, manifest) {
     totalUniqueDomains: dayCount.size,
     mostConsistent,
     tlds,
+    tldDomains,
     hyphenCount,
     numericCount,
     lengthDist,

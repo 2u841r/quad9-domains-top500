@@ -75,7 +75,7 @@ export default function Facts() {
   const [facts, setFacts] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [lenModal, setLenModal] = useState(null)
+  const [modal, setModal] = useState(null) // { title, domains }
 
   useEffect(() => {
     setLoading(true)
@@ -121,7 +121,7 @@ export default function Facts() {
           {facts.lengthDist.map(([len, count]) => (
             <div
               key={len}
-              onClick={() => setLenModal({ len, domains: facts.lenDomains.get(len) })}
+              onClick={() => setModal({ title: `${len}-letter domains`, domains: facts.lenDomains.get(len) })}
               style={{
                 backgroundColor: 'var(--color-dark-gray)',
                 padding: 'var(--space-xxs) var(--space-xs)',
@@ -169,7 +169,7 @@ export default function Facts() {
         />
       </div>
 
-      <TldSection tlds={facts.tlds} total={facts.totalUniqueDomains} />
+      <TldSection tlds={facts.tlds} tldDomains={facts.tldDomains} total={facts.totalUniqueDomains} onTldClick={(tld, domains) => setModal({ title: `.${tld} domains`, domains })} />
 
       {/* Day of week patterns */}
       <div style={sectionStyle}>
@@ -226,12 +226,12 @@ export default function Facts() {
         />
       </div>
 
-      {lenModal && <LenModal len={lenModal.len} domains={lenModal.domains} onClose={() => setLenModal(null)} />}
+      {modal && <DomainListModal title={modal.title} domains={modal.domains} onClose={() => setModal(null)} />}
     </div>
   )
 }
 
-function LenModal({ len, domains, onClose }) {
+function DomainListModal({ title, domains, onClose }) {
   const [page, setPage] = useState(0)
   const PAGE = 100
   const pages = Math.ceil(domains.length / PAGE)
@@ -264,7 +264,7 @@ function LenModal({ len, domains, onClose }) {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <span style={{ color: 'var(--color-white)', fontWeight: 600 }}>
-            {len}-letter domains <span style={{ color: 'var(--color-normal-gray)', fontWeight: 400 }}>({domains.length})</span>
+            {title} <span style={{ color: 'var(--color-normal-gray)', fontWeight: 400 }}>({domains.length})</span>
           </span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-normal-gray)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>✕</button>
         </div>
@@ -304,7 +304,7 @@ function LenModal({ len, domains, onClose }) {
   )
 }
 
-function TldSection({ tlds, total }) {
+function TldSection({ tlds, tldDomains, total, onTldClick }) {
   const [showMore, setShowMore] = useState(false)
   const main = tlds.filter(([, count]) => (count / total) * 100 >= 1.0)
   const rest = tlds.filter(([, count]) => (count / total) * 100 < 1.0)
@@ -324,7 +324,7 @@ function TldSection({ tlds, total }) {
           </thead>
           <tbody>
             {visible.map(([tld, count]) => (
-              <tr key={tld}>
+              <tr key={tld} onClick={() => onTldClick(tld, tldDomains.get(tld))} style={{ cursor: 'pointer' }}>
                 <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)' }}>.{tld}</td>
                 <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>{count}</td>
                 <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-normal-gray)', fontFamily: 'monospace' }}>

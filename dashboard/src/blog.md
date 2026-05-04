@@ -84,7 +84,7 @@ The fix is virtual scrolling: render only what is visible, pad the tbody with em
 
 I read [Writing down every UUID](https://eieio.games/blog/writing-down-every-uuid/) around the same time -- a post about a site that lets you scroll through all 2^122 possible UUIDs. The author solves the same shape of problem at a much more extreme scale: browsers cap scroll position at a 32-bit integer, so native scrolling breaks entirely, and the author ends up reimplementing scroll as a BigInt with custom mouse and keyboard handlers. My problem was simpler, but the framing helped -- if you cannot render everything, figure out exactly what you do need to render and fake the rest.
 
-The table now uses [@tanstack/react-virtual](https://tanstack.com/virtual) with window-based scrolling. Rows over 150 get virtualized automatically. Render time dropped from 883ms to under 50ms.
+The table now uses [@tanstack/react-virtual](https://tanstack.com/virtual) with window-based scrolling. Rows over 150 get virtualized automatically. Render time dropped from 883ms to 13.7ms -- about 64x faster.
 
 ## Facts
 

@@ -17,6 +17,7 @@ const headingStyle = {
   color: 'var(--color-lighter-gray)',
   borderBottom: '1px solid var(--color-darkest-gray)',
   fontWeight: 600,
+  wordBreak: 'break-word',
 }
 
 const thStyle = {
@@ -144,7 +145,7 @@ export default function Facts() {
           Day-of-week patterns — top 50 consistent domains
         </div>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', minWidth: 520, borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <th style={thStyle}>Domain</th>

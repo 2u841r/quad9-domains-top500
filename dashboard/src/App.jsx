@@ -80,7 +80,7 @@ export default function App() {
   const hasCompare = !!(primaryData && compareData)
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-dark-gray)', color: 'var(--color-white)' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-dark-gray)', color: 'var(--color-white)', overflowX: 'hidden' }}>
       <Header />
       <ViewTabs view={view} onChange={setView} />
 

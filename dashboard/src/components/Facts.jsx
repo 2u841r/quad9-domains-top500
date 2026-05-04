@@ -74,6 +74,7 @@ export default function Facts() {
   const [facts, setFacts] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [lenModal, setLenModal] = useState(null)
 
   useEffect(() => {
     setLoading(true)
@@ -108,6 +109,25 @@ export default function Facts() {
         <Stat label="Unique domains ever seen" value={facts.totalUniqueDomains.toLocaleString()} />
         <Stat label="Domains with hyphens" value={facts.hyphenCount} />
         <Stat label="Domains with numbers" value={facts.numericCount} />
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={thStyle}>Letters (without TLD)</th>
+                <th style={{ ...thStyle, textAlign: 'right' }}>Domains</th>
+              </tr>
+            </thead>
+            <tbody>
+              {facts.lengthDist.map(([len, count]) => (
+                <tr key={len} onClick={() => setLenModal({ len, domains: facts.lenDomains.get(len) })}
+                  style={{ cursor: 'pointer' }}>
+                  <td style={{ ...tdStyle, color: 'var(--color-lighter-gray)', fontFamily: 'monospace' }}>{len}</td>
+                  <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-white)' }}>{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Most consistent */}
@@ -182,6 +202,78 @@ export default function Facts() {
         </div>
       </div>
 
+      {lenModal && <LenModal len={lenModal.len} domains={lenModal.domains} onClose={() => setLenModal(null)} />}
+    </div>
+  )
+}
+
+function LenModal({ len, domains, onClose }) {
+  const [page, setPage] = useState(0)
+  const PAGE = 100
+  const pages = Math.ceil(domains.length / PAGE)
+  const slice = domains.slice(page * PAGE, (page + 1) * PAGE)
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 'var(--space-sm)',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          backgroundColor: 'var(--color-darker-gray)',
+          border: '1px solid var(--color-light-gray)',
+          borderRadius: 'var(--border-radius-default)',
+          width: '100%', maxWidth: 480,
+          maxHeight: '80vh',
+          display: 'flex', flexDirection: 'column',
+        }}
+      >
+        <div style={{
+          padding: 'var(--space-xs) var(--space-sm)',
+          borderBottom: '1px solid var(--color-darkest-gray)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <span style={{ color: 'var(--color-white)', fontWeight: 600 }}>
+            {len}-letter domains <span style={{ color: 'var(--color-normal-gray)', fontWeight: 400 }}>({domains.length})</span>
+          </span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-normal-gray)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>✕</button>
+        </div>
+
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {slice.map(d => (
+            <div key={d} style={{
+              padding: 'var(--space-xxs) var(--space-sm)',
+              borderBottom: '1px solid var(--color-darkest-gray)',
+              fontFamily: 'monospace', fontSize: 'var(--font-size-lg)',
+              color: 'var(--color-white)',
+            }}>{d}</div>
+          ))}
+        </div>
+
+        {pages > 1 && (
+          <div style={{
+            borderTop: '1px solid var(--color-darkest-gray)',
+            padding: 'var(--space-xxs) var(--space-sm)',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+              style={{ background: 'none', border: '1px solid var(--color-light-gray)', color: 'var(--color-lighter-gray)', borderRadius: 'var(--border-radius-default)', padding: '2px 10px', cursor: 'pointer', opacity: page === 0 ? 0.3 : 1 }}>
+              Prev
+            </button>
+            <span style={{ color: 'var(--color-normal-gray)', fontSize: 'var(--font-size-lg)' }}>{page + 1} / {pages}</span>
+            <button onClick={() => setPage(p => Math.min(pages - 1, p + 1))} disabled={page === pages - 1}
+              style={{ background: 'none', border: '1px solid var(--color-light-gray)', color: 'var(--color-lighter-gray)', borderRadius: 'var(--border-radius-default)', padding: '2px 10px', cursor: 'pointer', opacity: page === pages - 1 ? 0.3 : 1 }}>
+              Next
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -28,18 +28,28 @@ export function computeFacts(allBuf, dict, manifest) {
     .sort((a, b) => b.count - a.count)
   const mostConsistent = allDomains.slice(0, 50)
 
-  // 2. TLD breakdown (count unique domains, not appearances)
+  // 2. TLD breakdown + length distribution (count unique domains)
   const tldMap     = new Map()
+  const lenMap     = new Map()
   let hyphenCount  = 0
   let numericCount = 0
+
+  const lenDomains = new Map() // length → domain[]
 
   for (const [id] of dayCount) {
     const domain = dict[id]
     const tld    = domain.split('.').pop()
+    const label  = domain.slice(0, domain.lastIndexOf('.'))
     tldMap.set(tld, (tldMap.get(tld) ?? 0) + 1)
+    lenMap.set(label.length, (lenMap.get(label.length) ?? 0) + 1)
+    if (!lenDomains.has(label.length)) lenDomains.set(label.length, [])
+    lenDomains.get(label.length).push(domain)
     if (domain.includes('-')) hyphenCount++
     if (/\d/.test(domain)) numericCount++
   }
+
+  const lengthDist = [...lenMap.entries()].sort((a, b) => a[0] - b[0])
+  for (const arr of lenDomains.values()) arr.sort()
 
   const tlds = [...tldMap.entries()].sort((a, b) => b[1] - a[1])
 
@@ -80,6 +90,8 @@ export function computeFacts(allBuf, dict, manifest) {
     tlds,
     hyphenCount,
     numericCount,
+    lengthDist,
+    lenDomains,
     dowPatterns,
   }
 }

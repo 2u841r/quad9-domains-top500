@@ -166,6 +166,7 @@ export default function StickyTable({
             left: stickyLeft[ci],
             zIndex: 1,
             backgroundColor: bg,
+            transition: 'var(--hover-transition)',
             ...(ci === lastStickyIdx ? { boxShadow: `-4px 0 0 4px ${bg}` } : {}),
           } : {}),
           ...(col.maxWidth ? {
@@ -191,7 +192,7 @@ export default function StickyTable({
         onMouseEnter={() => setHoveredRow(ri)}
         onMouseLeave={() => setHoveredRow(null)}
         onClick={onRowClick ? () => onRowClick(row) : undefined}
-        style={{ cursor: onRowClick ? 'pointer' : 'default', transition: 'var(--hover-transition)' }}
+        style={{ cursor: onRowClick ? 'pointer' : 'default', transition: 'var(--hover-transition)', backgroundColor: ri === hoveredRow ? bgHover : bgBase }}
       >
         {columns.map((col, ci) => renderCell(col, ci, row, ri))}
       </tr>

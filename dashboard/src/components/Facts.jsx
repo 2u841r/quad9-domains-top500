@@ -329,6 +329,7 @@ function DomainListModal({ title, domains, onClose }) {
 
 function TldSection({ tlds, tldDomains, total, onTldClick }) {
   const [showMore, setShowMore] = useState(false)
+  const [hoveredTld, setHoveredTld] = useState(null)
   const main = tlds.filter(([, count]) => (count / total) * 100 >= 1.0)
   const rest = tlds.filter(([, count]) => (count / total) * 100 < 1.0)
   const visible = showMore ? tlds : main
@@ -347,7 +348,7 @@ function TldSection({ tlds, tldDomains, total, onTldClick }) {
           </thead>
           <tbody>
             {visible.map(([tld, count]) => (
-              <tr key={tld} onClick={() => onTldClick(tld, tldDomains.get(tld))} style={{ cursor: 'pointer' }}>
+              <tr key={tld} onClick={() => onTldClick(tld, tldDomains.get(tld))} onMouseEnter={() => setHoveredTld(tld)} onMouseLeave={() => setHoveredTld(null)} style={{ cursor: 'pointer', backgroundColor: hoveredTld === tld ? 'var(--color-darker-gray)' : 'var(--color-dark-gray)', transition: 'var(--hover-transition)' }}>
                 <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)' }}>.{tld}</td>
                 <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>{count}</td>
                 <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-normal-gray)', fontFamily: 'monospace' }}>

@@ -63,10 +63,10 @@ export default function DomainTable({ entries, hasCompare, loading }) {
       key: 'domain_name',
       label: 'Domain',
       sticky: true,
-      maxWidth: 'calc(50vw - 52px)',
+      maxWidth: 'min(calc(50vw - 52px), 260px)',
       expandable: true,
       href: v => `https://${v}`,
-      colWidth: 'calc(50vw - 52px)',
+      colWidth: 'min(calc(50vw - 52px), 260px)',
       style: { color: 'var(--color-white)', fontFamily: 'monospace', paddingLeft: 'var(--space-xxxs)' },
     },
     ...(showAgg ? [

@@ -1,4 +1,4 @@
-const VIEWS = ['daily', 'monthly', 'quarterly', 'yearly', 'facts']
+const VIEWS = ['daily', 'monthly', 'quarterly', 'yearly', 'facts', 'blog']
 
 export default function ViewTabs({ view, onChange }) {
   return (

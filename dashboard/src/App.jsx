@@ -8,6 +8,7 @@ import DomainTable from './components/DomainTable'
 import ProgressBar from './components/ProgressBar'
 import TopChart from './components/TopChart'
 import Facts from './components/Facts'
+import Blog from './components/Blog'
 
 function Header() {
   return (
@@ -86,14 +87,14 @@ export default function App() {
 
       <main style={{
         padding: 'var(--space-md) var(--space-xs)',
-        maxWidth: view === 'facts' ? 960 : 780,
+        maxWidth: view === 'facts' ? 960 : view === 'blog' ? 780 : 780,
         margin: '0 auto',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-md)',
       }}>
-        {view === 'facts' ? <Facts /> : <>
+        {view === 'facts' ? <Facts /> : view === 'blog' ? <Blog /> : <>
           {/* Controls */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>

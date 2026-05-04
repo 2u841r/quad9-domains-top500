@@ -132,7 +132,7 @@ export default function Facts() {
 
       {/* Most consistent */}
       <div style={sectionStyle}>
-        <div style={headingStyle}>Most consistent — top 50 by days in top 500 (no domain hit 100%)</div>
+        <div style={headingStyle}>Most consistent — top 100 by days in top 500 (no domain hit 100%)</div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -162,7 +162,7 @@ export default function Facts() {
       {/* Day of week patterns */}
       <div style={sectionStyle}>
         <div style={headingStyle}>
-          Day-of-week patterns — top 50 consistent domains
+          Day-of-week patterns — top 100 consistent domains
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', minWidth: 520, borderCollapse: 'collapse' }}>

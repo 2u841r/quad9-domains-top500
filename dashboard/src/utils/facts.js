@@ -26,7 +26,7 @@ export function computeFacts(allBuf, dict, manifest) {
   const allDomains = [...dayCount.entries()]
     .map(([id, count]) => ({ domain: dict[id], count, pct: count / totalDays }))
     .sort((a, b) => b.count - a.count)
-  const mostConsistent = allDomains.slice(0, 50)
+  const mostConsistent = allDomains.slice(0, 100)
 
   // 2. TLD breakdown + length distribution (count unique domains)
   const tldMap     = new Map()
@@ -53,7 +53,7 @@ export function computeFacts(allBuf, dict, manifest) {
 
   const tlds = [...tldMap.entries()].sort((a, b) => b[1] - a[1])
 
-  // 3. Day-of-week patterns — top 50 consistent domains
+  // 3. Day-of-week patterns — top 100 consistent domains
   const minDays = Math.floor(totalDays * 0.8)
   const pool = []
   for (const [id, count] of dayCount) {
@@ -61,9 +61,9 @@ export function computeFacts(allBuf, dict, manifest) {
     pool.push({ id, domain: dict[id], avg: totalPos.get(id) / count, count })
   }
   pool.sort((a, b) => a.avg - b.avg)
-  const top50 = pool.slice(0, 50)
+  const top100 = pool.slice(0, 100)
 
-  const dowPatterns = top50.map(({ id, domain, avg, count }) => {
+  const dowPatterns = top100.map(({ id, domain, avg, count }) => {
     const avgs = dowPos.get(id).map(positions =>
       positions.length ? positions.reduce((a, b) => a + b, 0) / positions.length : null
     )

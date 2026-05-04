@@ -121,3 +121,26 @@ body {
   color: var(--color-white);
   font-weight: 600;
 }
+
+.blog-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 var(--space-sm);
+  font-family: monospace;
+  font-size: var(--font-size-lg);
+}
+
+.blog-prose th {
+  padding: var(--space-xxs) var(--space-sm);
+  text-align: left;
+  color: var(--color-lighter-gray);
+  border-bottom: 1px solid var(--color-darkest-gray);
+  background-color: var(--color-darker-gray);
+  white-space: nowrap;
+}
+
+.blog-prose td {
+  padding: var(--space-xxs) var(--space-sm);
+  border-bottom: 1px solid var(--color-darker-gray);
+  color: var(--color-white);
+}

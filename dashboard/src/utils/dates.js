@@ -20,13 +20,13 @@ export function today() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export function getMonthRange(year, month) {
+function getMonthRange(year, month) {
   const start = `${year}-${String(month).padStart(2, '0')}-01`
   const lastDay = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10)
   return { start, end: lastDay }
 }
 
-export function getQuarterRange(year, quarter) {
+function getQuarterRange(year, quarter) {
   const startMonth = (quarter - 1) * 3 + 1
   const endMonth = quarter * 3
   const start = `${year}-${String(startMonth).padStart(2, '0')}-01`
@@ -34,7 +34,7 @@ export function getQuarterRange(year, quarter) {
   return { start, end: lastDay }
 }
 
-export function getYearRange(year) {
+function getYearRange(year) {
   return { start: `${year}-01-01`, end: `${year}-12-31` }
 }
 

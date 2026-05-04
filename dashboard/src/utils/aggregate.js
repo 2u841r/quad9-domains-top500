@@ -30,7 +30,7 @@ export function aggregateDays(daysData) {
     .map((item, i) => ({ ...item, position: i + 1 }))
 }
 
-export function buildCompareMap(entries) {
+function buildCompareMap(entries) {
   return new Map(entries.map(e => [e.domain_name, e.position]))
 }
 

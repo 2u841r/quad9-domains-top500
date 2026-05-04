@@ -136,32 +136,7 @@ export default function Facts() {
         </div>
       </div>
 
-      {/* TLD breakdown */}
-      <div style={sectionStyle}>
-        <div style={headingStyle}>Unique domains by TLD</div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={thStyle}>TLD</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Domains</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Share</th>
-              </tr>
-            </thead>
-            <tbody>
-              {facts.tlds.map(([tld, count]) => (
-                <tr key={tld}>
-                  <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)' }}>.{tld}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>{count}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-normal-gray)', fontFamily: 'monospace' }}>
-                    {((count / facts.totalUniqueDomains) * 100).toFixed(1)}%
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <TldSection tlds={facts.tlds} total={facts.totalUniqueDomains} />
 
       {/* Day of week patterns */}
       <div style={sectionStyle}>
@@ -206,6 +181,60 @@ export default function Facts() {
         </div>
       </div>
 
+    </div>
+  )
+}
+
+function TldSection({ tlds, total }) {
+  const [showMore, setShowMore] = useState(false)
+  const main = tlds.filter(([, count]) => (count / total) * 100 >= 1.0)
+  const rest = tlds.filter(([, count]) => (count / total) * 100 < 1.0)
+  const visible = showMore ? tlds : main
+
+  return (
+    <div style={sectionStyle}>
+      <div style={headingStyle}>Unique domains by TLD</div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={thStyle}>TLD</th>
+              <th style={{ ...thStyle, textAlign: 'right' }}>Domains</th>
+              <th style={{ ...thStyle, textAlign: 'right' }}>Share</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map(([tld, count]) => (
+              <tr key={tld}>
+                <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)' }}>.{tld}</td>
+                <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>{count}</td>
+                <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-normal-gray)', fontFamily: 'monospace' }}>
+                  {((count / total) * 100).toFixed(1)}%
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {rest.length > 0 && (
+        <button
+          onClick={() => setShowMore(v => !v)}
+          style={{
+            width: '100%',
+            padding: 'var(--space-xxs) var(--space-sm)',
+            background: 'none',
+            border: 'none',
+            borderTop: '1px solid var(--color-darkest-gray)',
+            color: 'var(--color-normal-gray)',
+            fontSize: 'var(--font-size-lg)',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-family)',
+            textAlign: 'center',
+          }}
+        >
+          {showMore ? 'Show less' : `Show ${rest.length} more TLDs (under 1%)`}
+        </button>
+      )}
     </div>
   )
 }

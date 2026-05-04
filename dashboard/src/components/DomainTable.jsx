@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import StickyTable from './StickyTable'
 
 function DeltaBadge({ delta }) {
   if (delta === null) {
@@ -18,24 +19,6 @@ function DeltaBadge({ delta }) {
       {up ? '▲' : '▼'}{Math.abs(delta)}
     </span>
   )
-}
-
-const thStyle = {
-  padding: 'var(--space-xxs) var(--space-sm)',
-  color: 'var(--color-lighter-gray)',
-  fontSize: 'var(--font-size-md)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.08em',
-  fontWeight: 'var(--font-weight)',
-  textAlign: 'left',
-  borderBottom: '1px solid var(--color-darkest-gray)',
-  whiteSpace: 'nowrap',
-}
-
-const tdStyle = {
-  padding: 'var(--space-xxs) var(--space-sm)',
-  fontSize: 'var(--font-size-lg)',
-  borderBottom: '1px solid var(--color-darker-gray)',
 }
 
 export default function DomainTable({ entries, hasCompare, loading }) {
@@ -62,6 +45,62 @@ export default function DomainTable({ entries, hasCompare, loading }) {
       </div>
     )
   }
+
+  const showAgg = entries[0]?.avgPosition != null
+
+  const columns = [
+    {
+      key: 'position',
+      label: '#',
+      sticky: true,
+      width: 52,
+      style: { color: 'var(--color-lighter-gray)', fontFamily: 'monospace', paddingRight: 'var(--space-xxxs)' },
+    },
+    {
+      key: 'domain_name',
+      label: 'Domain',
+      sticky: true,
+      maxWidth: 'calc(50vw - 52px)',
+      expandable: true,
+      style: { color: 'var(--color-white)', fontFamily: 'monospace', paddingLeft: 'var(--space-xxxs)' },
+    },
+    ...(showAgg ? [
+      {
+        key: 'avgPosition',
+        label: 'Avg rank',
+        align: 'right',
+        style: { color: 'var(--color-white)', fontFamily: 'monospace' },
+        render: v => v.toFixed(1),
+      },
+      {
+        key: 'daysAppeared',
+        label: 'Days',
+        align: 'right',
+        style: { color: 'var(--color-lighter-gray)' },
+      },
+      {
+        key: 'bestPosition',
+        label: 'Best',
+        align: 'right',
+        style: { color: 'var(--color-lighter-gray)' },
+      },
+    ] : []),
+    ...(hasCompare ? [
+      {
+        key: 'comparePosition',
+        label: 'Compare #',
+        align: 'right',
+        style: { color: 'var(--color-lighter-gray)', fontFamily: 'monospace' },
+        render: v => v ?? <span style={{ color: 'var(--color-normal-gray)' }}>n/a</span>,
+      },
+      {
+        key: 'delta',
+        label: 'Change',
+        align: 'right',
+        render: v => <DeltaBadge delta={v} />,
+      },
+    ] : []),
+  ]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
@@ -91,94 +130,15 @@ export default function DomainTable({ entries, hasCompare, loading }) {
       <div style={{
         borderRadius: 'var(--border-radius-default)',
         border: '1px solid var(--color-darkest-gray)',
-        overflowX: 'auto',
+        overflow: 'hidden',
       }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ ...thStyle, width: 52, minWidth: 52, maxWidth: 52, paddingRight: 'var(--space-xxxs)', position: 'sticky', left: 0, zIndex: 2, backgroundColor: 'var(--color-darker-gray)' }}>#</th>
-              <th style={{ ...thStyle, paddingLeft: 'var(--space-xxxs)', position: 'sticky', left: 52, zIndex: 2, backgroundColor: 'var(--color-darker-gray)', boxShadow: '-4px 0 0 4px var(--color-darker-gray)' }}>Domain</th>
-              {entries[0]?.avgPosition != null && (
-                <>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Avg rank</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Days</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Best</th>
-                </>
-              )}
-              {hasCompare && (
-                <>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Compare #</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Change</th>
-                </>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered?.map(entry => (
-              <Row key={entry.domain_name} entry={entry} hasCompare={hasCompare} showAgg={entries[0]?.avgPosition != null} />
-            ))}
-          </tbody>
-        </table>
+        <StickyTable
+          columns={columns}
+          rows={filtered}
+          bgBase="var(--color-dark-gray)"
+          bgHover="var(--color-darker-gray)"
+        />
       </div>
     </div>
-  )
-}
-
-function Row({ entry, hasCompare, showAgg }) {
-  const [hovered, setHovered] = useState(false)
-  const [expanded, setExpanded] = useState(false)
-  const bg = hovered ? 'var(--color-darker-gray)' : 'var(--color-dark-gray)'
-  return (
-    <tr
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ transition: 'var(--hover-transition)' }}
-    >
-      <td style={{ ...tdStyle, width: 52, minWidth: 52, maxWidth: 52, paddingRight: 'var(--space-xxxs)', position: 'sticky', left: 0, zIndex: 1, backgroundColor: bg, color: 'var(--color-lighter-gray)', fontFamily: 'monospace' }}>{entry.position}</td>
-      <td
-        onClick={() => setExpanded(v => !v)}
-        title={entry.domain_name}
-        style={{
-          ...tdStyle,
-          paddingLeft: 'var(--space-xxxs)',
-          position: 'sticky',
-          left: 52,
-          zIndex: 1,
-          backgroundColor: bg,
-          boxShadow: `-4px 0 0 4px ${bg}`,
-          color: 'var(--color-white)',
-          fontFamily: 'monospace',
-          maxWidth: 'calc(50vw - 52px)',
-          overflow: 'hidden',
-          textOverflow: expanded ? 'clip' : 'ellipsis',
-          whiteSpace: expanded ? 'normal' : 'nowrap',
-          cursor: 'pointer',
-          wordBreak: expanded ? 'break-all' : 'normal',
-        }}
-      >{entry.domain_name}</td>
-      {showAgg && (
-        <>
-          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-white)', fontFamily: 'monospace' }}>
-            {entry.avgPosition.toFixed(1)}
-          </td>
-          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>
-            {entry.daysAppeared}
-          </td>
-          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>
-            {entry.bestPosition}
-          </td>
-        </>
-      )}
-      {hasCompare && (
-        <>
-          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)', fontFamily: 'monospace' }}>
-            {entry.comparePosition ?? <span style={{ color: 'var(--color-normal-gray)' }}>n/a</span>}
-          </td>
-          <td style={{ ...tdStyle, textAlign: 'right' }}>
-            <DeltaBadge delta={entry.delta} />
-          </td>
-        </>
-      )}
-    </tr>
   )
 }

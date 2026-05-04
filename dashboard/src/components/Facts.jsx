@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { loadAllBin, getRawData } from '../hooks/useQuad9Data'
 import { computeFacts } from '../utils/facts'
+import StickyTable from './StickyTable'
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -75,7 +76,6 @@ export default function Facts() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [lenModal, setLenModal] = useState(null)
-  const [expandedDomain, setExpandedDomain] = useState(null)
 
   useEffect(() => {
     setLoading(true)
@@ -165,42 +165,53 @@ export default function Facts() {
         <div style={headingStyle}>
           Day-of-week patterns — top 100 consistent domains
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', minWidth: 520, borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ ...thStyle, position: 'sticky', left: 0, zIndex: 2 }}>Domain</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Avg rank</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Best day</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Worst day</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Swing</th>
-                <th style={{ ...thStyle }}>S M T W T F S</th>
-              </tr>
-            </thead>
-            <tbody>
-              {facts.dowPatterns.map(p => (
-                <tr key={p.domain}>
-                  <td onClick={() => setExpandedDomain(v => v === p.domain ? null : p.domain)} style={{ ...tdStyle, paddingRight: 0, fontFamily: 'monospace', color: 'var(--color-white)', position: 'sticky', left: 0, zIndex: 1, backgroundColor: 'var(--color-dark-gray)', maxWidth: '33vw', overflow: 'hidden', textOverflow: expandedDomain === p.domain ? 'clip' : 'ellipsis', whiteSpace: expandedDomain === p.domain ? 'normal' : 'nowrap', wordBreak: expandedDomain === p.domain ? 'break-all' : 'normal', cursor: 'pointer' }}>{p.domain}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', fontFamily: 'monospace', color: 'var(--color-lighter-gray)' }}>
-                    {p.avgOverall.toFixed(1)}
-                  </td>
-                  <td style={{ ...tdStyle, textAlign: 'center', color: '#4ade80', fontFamily: 'monospace' }}>
-                    {p.bestDay} <span style={{ color: 'var(--color-normal-gray)' }}>#{p.bestAvg.toFixed(0)}</span>
-                  </td>
-                  <td style={{ ...tdStyle, textAlign: 'center', color: '#f87171', fontFamily: 'monospace' }}>
-                    {p.worstDay} <span style={{ color: 'var(--color-normal-gray)' }}>#{p.worstAvg.toFixed(0)}</span>
-                  </td>
-                  <td style={{ ...tdStyle, textAlign: 'right', fontFamily: 'monospace', color: 'var(--color-normal-gray)' }}>
-                    {p.swing.toFixed(1)}
-                  </td>
-                  <td style={{ ...tdStyle }}>
-                    <DowBar avgs={p.dowAvgs} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <StickyTable
+          minWidth={520}
+          columns={[
+            {
+              key: 'domain',
+              label: 'Domain',
+              sticky: true,
+              maxWidth: '33vw',
+              expandable: true,
+              style: { fontFamily: 'monospace', color: 'var(--color-white)' },
+            },
+            {
+              key: 'avgOverall',
+              label: 'Avg rank',
+              align: 'right',
+              style: { fontFamily: 'monospace', color: 'var(--color-lighter-gray)' },
+              render: v => v.toFixed(1),
+            },
+            {
+              key: 'bestDay',
+              label: 'Best day',
+              align: 'center',
+              style: { fontFamily: 'monospace', color: '#4ade80' },
+              render: (v, row) => <>{v} <span style={{ color: 'var(--color-normal-gray)' }}>#{row.bestAvg.toFixed(0)}</span></>,
+            },
+            {
+              key: 'worstDay',
+              label: 'Worst day',
+              align: 'center',
+              style: { fontFamily: 'monospace', color: '#f87171' },
+              render: (v, row) => <>{v} <span style={{ color: 'var(--color-normal-gray)' }}>#{row.worstAvg.toFixed(0)}</span></>,
+            },
+            {
+              key: 'swing',
+              label: 'Swing',
+              align: 'right',
+              style: { fontFamily: 'monospace', color: 'var(--color-normal-gray)' },
+              render: v => v.toFixed(1),
+            },
+            {
+              key: 'dowAvgs',
+              label: 'S M T W T F S',
+              render: v => <DowBar avgs={v} />,
+            },
+          ]}
+          rows={facts.dowPatterns}
+        />
       </div>
 
       {lenModal && <LenModal len={lenModal.len} domains={lenModal.domains} onClose={() => setLenModal(null)} />}

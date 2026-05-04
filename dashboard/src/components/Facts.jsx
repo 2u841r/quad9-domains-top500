@@ -148,7 +148,7 @@ export default function Facts() {
           <table style={{ width: '100%', minWidth: 520, borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                <th style={thStyle}>Domain</th>
+                <th style={{ ...thStyle, position: 'sticky', left: 0, zIndex: 2 }}>Domain</th>
                 <th style={{ ...thStyle, textAlign: 'right' }}>Avg rank</th>
                 <th style={{ ...thStyle, textAlign: 'center' }}>Best day</th>
                 <th style={{ ...thStyle, textAlign: 'center' }}>Worst day</th>
@@ -159,7 +159,7 @@ export default function Facts() {
             <tbody>
               {facts.dowPatterns.map(p => (
                 <tr key={p.domain}>
-                  <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)', whiteSpace: 'nowrap' }}>{p.domain}</td>
+                  <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)', whiteSpace: 'nowrap', position: 'sticky', left: 0, zIndex: 1, backgroundColor: 'var(--color-dark-gray)' }}>{p.domain}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', fontFamily: 'monospace', color: 'var(--color-lighter-gray)' }}>
                     {p.avgOverall.toFixed(1)}
                   </td>

@@ -151,7 +151,7 @@ export default function Facts() {
                 gap: 2,
               }}
             >
-              <span style={{ color: 'var(--color-lighter-gray)', fontSize: 'var(--font-size-lg)', fontFamily: 'monospace' }}>{len} letters</span>
+              <span style={{ color: 'var(--color-lighter-gray)', fontSize: 'var(--font-size-lg)', fontFamily: 'monospace', textAlign: 'center' }}>{len} letters</span>
               <span style={{ color: 'var(--color-white)', fontFamily: 'monospace', fontWeight: 600 }}>{count}</span>
             </div>
           ))}

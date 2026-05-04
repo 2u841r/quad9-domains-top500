@@ -71,9 +71,9 @@ export function defaultPeriod(view) {
   const y = now.getUTCFullYear()
   const m = now.getUTCMonth() + 1
   const q = Math.ceil(m / 3)
-  const yest = addDays(today(), -1)
+  const twoDaysAgo = addDays(today(), -2)
 
-  if (view === 'daily') return { type: 'day', date: yest < FIRST_DATE ? FIRST_DATE : yest }
+  if (view === 'daily') return { type: 'day', date: twoDaysAgo < FIRST_DATE ? FIRST_DATE : twoDaysAgo }
   if (view === 'monthly') return { type: 'month', year: y, month: m }
   if (view === 'quarterly') return { type: 'quarter', year: y, quarter: q }
   if (view === 'yearly') return { type: 'year', year: y }

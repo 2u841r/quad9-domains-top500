@@ -134,30 +134,31 @@ export default function Facts() {
       {/* Most consistent */}
       <div style={sectionStyle}>
         <div style={headingStyle}>Most consistent — top 100 by days in top 500 (no domain hit 100%)</div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Domain</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Days</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Coverage</th>
-              </tr>
-            </thead>
-            <tbody>
-              {facts.mostConsistent.map(({ domain, count, pct }) => (
-                <tr key={domain}>
-                  <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)' }}>
-                    <a href={`https://${domain}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{domain}</a>
-                  </td>
-                  <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>{count}/{facts.totalDays}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-accent)', fontFamily: 'monospace' }}>
-                    {(pct * 100).toFixed(1)}%
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <StickyTable
+          columns={[
+            {
+              key: 'domain',
+              label: 'Domain',
+              style: { fontFamily: 'monospace', color: 'var(--color-white)' },
+              render: v => <a href={`https://${v}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{v}</a>,
+            },
+            {
+              key: 'count',
+              label: 'Days',
+              align: 'right',
+              style: { color: 'var(--color-lighter-gray)' },
+              render: (v, row) => `${v}/${facts.totalDays}`,
+            },
+            {
+              key: 'pct',
+              label: 'Coverage',
+              align: 'right',
+              style: { color: 'var(--color-accent)', fontFamily: 'monospace' },
+              render: v => `${(v * 100).toFixed(1)}%`,
+            },
+          ]}
+          rows={facts.mostConsistent}
+        />
       </div>
 
       <TldSection tlds={facts.tlds} total={facts.totalUniqueDomains} />

@@ -1,112 +1,95 @@
-# How This Dashboard Works
+# Building a Browser for Quad9's Public DNS Data
 
-## What is Quad9?
+Quad9 is a non-profit DNS resolver. They publish a daily list of the 500 most queried domains through their infrastructure, going back to mid-2025. The data is on GitHub, one NDJSON file per day, completely public.
 
-Quad9 is a non-profit DNS resolver focused on privacy and security. When you type a domain into your browser, your computer sends a query to a DNS server to translate that name into an IP address. Quad9 handles billions of those queries every day, and unlike many large commercial resolvers, it operates without interest in profiling or selling your data.
+I had known about Quad9 for a few years. At some point I went looking for a way to actually browse and explore that data, something you could open in a browser and look around in. There was nothing. Just raw files in a repository. So I built one.
 
-As part of their transparency commitment, Quad9 publishes a daily list of the 500 most queried domains through their resolver. Each file covers one calendar day, lists domains in rank order from most to least queried, and is released publicly on GitHub. The dataset starts from June 2025 and grows by one file every day.
+This post is about the decisions I made along the way.
 
-The question this dashboard tries to answer: what patterns emerge when you look at this data across weeks, months, and quarters?
+## The Data
 
-## The Raw Data Format
-
-Each daily file from Quad9 is NDJSON, where every line is a separate JSON object:
+Each daily file has 500 lines. Every line is a JSON object:
 
 ```json
 {"rank": 1, "domain_name": "example.com"}
 {"rank": 2, "domain_name": "other.com"}
 ```
 
-Five hundred lines per day. Readable and easy to work with, but the format carries real overhead. Field names repeat on every line. Values are wrapped in quotes. Newlines and braces add up. A single day's file weighs around 36 kilobytes.
+Simple. But once you want to show trends across weeks or months, you need many of these files at once. And the format is heavier than it looks.
 
-For a dashboard that needs to load a year of data, that is over 13 megabytes of text that needs to be fetched, parsed, and processed before anything appears on screen.
+## The Format Problem
 
-## Exploring Smaller Formats
+The first version fetched NDJSON files directly from the GitHub repository on demand. For a single day that was fine. For a quarterly view it meant 90 separate network requests, each one parsing JSON text in the browser. On a slow mobile connection the wait was long enough to feel broken.
 
-### CSV
-
-The obvious first step was CSV. Strip the field names, keep only the values, one per line. For this dataset, CSV actually helps meaningfully. The reason is that every row has exactly the same two fields: rank and domain name. And the rank is just the line number, so you can drop it entirely. A CSV file for one day becomes 500 domain names with no overhead at all.
-
-File sizes drop noticeably, but the domain names themselves are still the bottleneck. Most of them repeat across many days. Writing `googleapis.com` or `microsoft.com` in 300 separate files wastes space on repetition that carries no new information.
-
-### TOON
-
-[TOON](https://github.com/toon-format/toon) (Transposed Object Notation) represents data in a columnar structure, rotating the table so that attributes become the primary axis rather than records. For dense numerical data this can be very efficient. For this dataset, one interesting shape is to make domains the rows and dates the columns, storing the rank in each cell.
-
-That structure is great for questions like "how did this domain rank across time?" But for a dashboard where users mostly ask "what were the top 500 domains on this date?", you end up slicing across the grain of the data every time. The access pattern does not fit the format.
-
-### Measured Results
-
-To make this concrete, we ran all three formats against a real day's data (500 domains):
+So I ran an experiment. Took one day's file, 500 domains, and converted it to three formats to compare size and token count:
 
 | Format | Size | Tokens |
 |--------|------|--------|
 | NDJSON | 36,460 bytes | 13,886 |
 | CSV | 13,986 bytes | 6,768 |
-| TOON | 14,993 bytes | 7,771 |
+| [TOON](https://github.com/toon-format/toon) | 14,993 bytes | 7,771 |
 
-CSV wins on both size and token count. TOON comes in slightly larger than CSV here because the data is flat uniform records: every row has the same two fields. TOON's header-deduplication advantage only kicks in with nested or varied schemas. For a table of 500 identical-shaped rows, CSV has less overhead.
+CSV wins. The reason is specific to this dataset: every row has exactly the same two fields, and the rank is just the line number so you can drop it entirely. A CSV file for one day is just 500 domain names, one per line. TOON's header-deduplication advantage would matter more with nested or varied schemas. For flat uniform rows, CSV has less overhead.
 
-Neither gets close to what binary encoding achieves.
+But even CSV was not the answer. The domain names repeat constantly across files. Writing `googleapis.com` or `microsoft.com` in hundreds of separate files wastes space on repetition that carries no new information.
 
-### Binary Encoding
+## Binary Encoding
 
-The real breakthrough came from noticing that the domain names repeat constantly while only the ranks change. If each domain could be referred to by a number instead of its full name, the daily files could shrink to almost nothing.
+The real fix came from separating what changes from what stays the same.
 
-The approach uses two parts.
+Build a dictionary once: read every domain that has ever appeared in any file and assign each one a sequential integer ID. Store it as a plain text file, one domain per line, where the line number is the ID. Across the full history there are roughly 10,000 unique domains.
 
-**Dictionary.** Read every domain that has ever appeared across the full dataset. Assign each one a sequential integer ID starting from zero. Store this as a plain text file with one domain per line, so the line number is the ID. Across the entire history there are roughly 10,000 unique domains.
+Then encode each day as binary: 500 domain IDs in rank order, each stored as a 16-bit unsigned integer. That is 2 bytes per domain, 1000 bytes per day total.
 
-**Daily binary files.** Each day contains 500 domain IDs in rank order. Store each ID as a 16-bit unsigned integer in little-endian byte order. That is 2 bytes per domain, 500 domains per day, 1000 bytes total per file.
+| | Before | After |
+|---|---|---|
+| Per day | 36,460 bytes | 1,000 bytes |
+| All 331 days | ~12 MB | 331 KB |
+| Dictionary (one-time) | — | 141 KB |
+| Total | ~12 MB | ~472 KB |
 
-36 kilobytes per day becomes 1 kilobyte. A 97 percent reduction with no data loss.
-
-Decoding in the browser requires no parsing at all:
+97 percent smaller. Decoding in the browser is a single typed array operation with no parsing:
 
 ```js
 const ids = new Uint16Array(await response.arrayBuffer())
 const domains = Array.from(ids, id => dict[id])
 ```
 
-The browser reads raw bytes into a typed array and maps each ID to a name using the dictionary. No JSON.parse, no string splitting, no garbage collection pressure from thousands of intermediate strings.
+## One File for Everything
 
-## One File for Aggregate Views
-
-Individual daily files work well for the daily view: fetch one file, decode it, display it. But monthly and quarterly views need data from many days. Fetching 90 files for a quarterly view means 90 separate network round trips, even if each one is only 1 kilobyte.
-
-The solution is `all.bin`: all daily files concatenated in chronological order into a single download. A companion `manifest.json` maps each date to its position in the file. Slicing out a date range is pure arithmetic:
+Even at 1 KB per day, 90 requests for a quarterly view is still 90 round trips. The solution was to concatenate all daily files into a single `all.bin`, loaded once and cached in memory. A companion `manifest.json` maps each date to its position in the file. Slicing out any date range is arithmetic:
 
 ```js
 const start = dayIndex * 500
 const slice = allBuf.subarray(start, start + 500)
 ```
 
-The full history as of this writing is around 470 kilobytes uncompressed. It is fetched once and cached in memory. Switching between monthly, quarterly, and yearly views after that requires no additional network requests.
+The full history sits at around 470 KB. After the initial load, switching between monthly, quarterly, and yearly views requires no further network requests.
 
-## The Dashboard
+## The Site
 
-The frontend is built with Vite and React, served as a static site on GitHub Pages with a custom domain. There is no backend. All data lives in the `public/data/` directory, generated at build time by a Node script that reads the raw NDJSON files from the repository and produces the dictionary, per-day binaries, and `all.bin`.
+The frontend is built with Vite and React, deployed as a static site on GitHub Pages with a custom domain. No backend, no database. Everything runs in the browser.
 
-A GitHub Actions workflow syncs new data from the upstream Quad9 repository every day at 10:01 UTC, then triggers a fresh build and deploy. The site updates automatically without any manual steps.
+A GitHub Actions workflow pulls new data from the upstream Quad9 repository every day at 10:01 UTC, then rebuilds and redeploys. The site stays current without any manual steps.
 
-The four main views (daily, monthly, quarterly, yearly) share a common table component with sticky columns for rank and domain name. On narrow screens the domain column is capped at half the viewport width with truncation. A single tap expands a truncated domain to its full text; a second tap opens it in a new browser tab.
+The table has sticky columns for rank and domain name so you can scroll right on mobile without losing context. Domain names that are too long to fit get truncated: one tap expands the full name, a second tap opens the domain in a new tab.
 
-Compare mode lets you place two periods side by side. The table shows both ranks and a delta column indicating how much a domain moved between the two periods. Domains that appear in one period but not the other are marked as new or absent.
+Compare mode lets you put two time periods side by side. The table shows both ranks and a delta column. Domains that appear in one period but not the other are marked.
 
 ## Facts
 
-The facts view runs a full scan over the entire dataset client-side and surfaces things that are hard to see in a daily table.
+One section runs a full analysis over the entire dataset client-side and surfaces things that are hard to see day to day.
 
-**Consistency.** Which domains appear most reliably? No domain has appeared in every single day of data. Even large platforms like `google.com` or `microsoft.com` have days where they fall outside the top 500. The most consistent domains hover around 89 to 95 percent coverage across the available history.
+Consistency: which domains appear most reliably? No domain has hit every single day. Even large platforms like `google.com` miss occasionally. The most consistent ones sit around 89 to 95 percent coverage.
 
-**TLD breakdown.** The `.com` TLD dominates by a wide margin, but the distribution of other TLDs is interesting. Country-code TLDs, newer gTLDs, and infrastructure domains each carve out a small but consistent share.
+TLD breakdown: `.com` dominates, but the distribution across country-code and newer TLDs is worth looking at.
 
-**Domain length.** Most domains in the top 500 cluster between 5 and 15 characters in the label (the part before the TLD). The shortest are two or three characters. The longest are full phrases or product names that somehow still drive enough query volume to land in the top 500 globally.
+Domain length: most labels cluster between 5 and 15 characters. The outliers at both ends are interesting.
 
-**Day-of-week patterns.** Some domains rank consistently higher on weekdays than weekends, or vice versa. Video streaming and social platforms tend to peak on evenings and weekends. Enterprise and productivity tools lean toward weekdays. The patterns are subtle but visible when you average ranks across hundreds of weeks of data.
+Day-of-week patterns: some domains rank higher on weekends, others on weekdays. The signal is subtle but visible when you average across months of data.
 
-All of this runs in the browser on the cached `all.bin` buffer, with no additional fetches required after the initial load.
+All of this computes from the cached `all.bin` buffer. No extra fetches.
 
 ## Source
 
-The data comes from the [Quad9DNS/quad9-domains-top500](https://github.com/Quad9DNS/quad9-domains-top500) repository. The dashboard source is at [2u841r/quad9-domains-top500](https://github.com/2u841r/quad9-domains-top500).
+Data from [Quad9DNS/quad9-domains-top500](https://github.com/Quad9DNS/quad9-domains-top500). Site source at [2u841r/quad9-domains-top500](https://github.com/2u841r/quad9-domains-top500).

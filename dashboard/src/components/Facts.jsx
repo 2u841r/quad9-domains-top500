@@ -8,7 +8,6 @@ const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const sectionStyle = {
   border: '1px solid var(--color-darkest-gray)',
   borderRadius: 'var(--border-radius-default)',
-  overflow: 'hidden',
 }
 
 const headingStyle = {

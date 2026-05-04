@@ -157,7 +157,7 @@ export default function StickyTable({
     : 0
 
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: theadTop !== undefined ? 'clip' : 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth }}>
         <thead>
           <tr>

@@ -76,6 +76,16 @@ The table has sticky columns for rank and domain name so you can scroll right on
 
 Compare mode lets you put two time periods side by side. The table shows both ranks and a delta column. Domains that appear in one period but not the other are marked.
 
+## Rendering Performance
+
+Yearly view with compare mode was slow. React profiler showed StickyTable taking 883ms out of a 1015ms render -- the table was creating 500 rows times 7 cells = 3,500 DOM nodes all at once, even though only around 25 are visible at any time.
+
+The fix is virtual scrolling: render only what is visible, pad the tbody with empty rows at top and bottom to preserve scroll height, and swap rows in and out as you scroll. The DOM stays small regardless of list length.
+
+I read [Writing down every UUID](https://eieio.games/blog/writing-down-every-uuid/) around the same time -- a post about a site that lets you scroll through all 2^122 possible UUIDs. The author solves the same shape of problem at a much more extreme scale: browsers cap scroll position at a 32-bit integer, so native scrolling breaks entirely, and the author ends up reimplementing scroll as a BigInt with custom mouse and keyboard handlers. My problem was simpler, but the framing helped -- if you cannot render everything, figure out exactly what you do need to render and fake the rest.
+
+The table now uses [@tanstack/react-virtual](https://tanstack.com/virtual) with window-based scrolling. Rows over 150 get virtualized automatically. Render time dropped from 883ms to under 50ms.
+
 ## Facts
 
 One section runs a full analysis over the entire dataset client-side and surfaces things that are hard to see day to day.

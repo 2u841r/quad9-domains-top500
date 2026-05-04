@@ -106,11 +106,16 @@ export default function StickyTable({
                       onClick={col.expandable
                         ? e => {
                             e.stopPropagation()
-                            if (isExpanded && col.href) {
-                              window.open(col.href(value, row), '_blank', 'noopener,noreferrer')
+                            if (isExpanded) {
+                              if (col.href) window.open(col.href(value, row), '_blank', 'noopener,noreferrer')
                               setExpandedCell(null)
                             } else {
-                              setExpandedCell(isExpanded ? null : cellKey)
+                              const truncated = e.currentTarget.scrollWidth > e.currentTarget.offsetWidth
+                              if (truncated) {
+                                setExpandedCell(cellKey)
+                              } else if (col.href) {
+                                window.open(col.href(value, row), '_blank', 'noopener,noreferrer')
+                              }
                             }
                           }
                         : undefined}

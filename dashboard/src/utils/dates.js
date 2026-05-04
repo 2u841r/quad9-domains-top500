@@ -71,9 +71,12 @@ export function defaultPeriod(view) {
   const y = now.getUTCFullYear()
   const m = now.getUTCMonth() + 1
   const q = Math.ceil(m / 3)
-  const twoDaysAgo = addDays(today(), -2)
+  // Upstream publishes ~10:02 UTC: yesterday's data is available after that, otherwise two days ago
+  const syncedHour = now.getUTCHours() * 60 + now.getUTCMinutes() >= 10 * 60 + 2
+  const latestDate = addDays(today(), syncedHour ? -1 : -2)
+  const clampedDate = latestDate < FIRST_DATE ? FIRST_DATE : latestDate
 
-  if (view === 'daily') return { type: 'day', date: twoDaysAgo < FIRST_DATE ? FIRST_DATE : twoDaysAgo }
+  if (view === 'daily') return { type: 'day', date: clampedDate }
   if (view === 'monthly') return { type: 'month', year: y, month: m }
   if (view === 'quarterly') return { type: 'quarter', year: y, quarter: q }
   if (view === 'yearly') return { type: 'year', year: y }

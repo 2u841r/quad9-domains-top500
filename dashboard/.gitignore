@@ -13,6 +13,8 @@ dist-ssr
 public/data
 *.local
 
+.fallow
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

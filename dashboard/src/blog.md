@@ -31,9 +31,23 @@ File sizes drop noticeably, but the domain names themselves are still the bottle
 
 ### TOON
 
-TOON (Transposed Object Notation) represents data in a columnar structure, rotating the table so that attributes become the primary axis rather than records. For dense numerical data this can be very efficient. For this dataset, one interesting shape is to make domains the rows and dates the columns, storing the rank in each cell.
+[TOON](https://github.com/toon-format/toon) (Transposed Object Notation) represents data in a columnar structure, rotating the table so that attributes become the primary axis rather than records. For dense numerical data this can be very efficient. For this dataset, one interesting shape is to make domains the rows and dates the columns, storing the rank in each cell.
 
 That structure is great for questions like "how did this domain rank across time?" But for a dashboard where users mostly ask "what were the top 500 domains on this date?", you end up slicing across the grain of the data every time. The access pattern does not fit the format.
+
+### Measured Results
+
+To make this concrete, we ran all three formats against a real day's data (500 domains):
+
+| Format | Size | Tokens |
+|--------|------|--------|
+| NDJSON | 36,460 bytes | 13,886 |
+| CSV | 13,986 bytes | 6,768 |
+| TOON | 14,993 bytes | 7,771 |
+
+CSV wins on both size and token count. TOON comes in slightly larger than CSV here because the data is flat uniform records: every row has the same two fields. TOON's header-deduplication advantage only kicks in with nested or varied schemas. For a table of 500 identical-shaped rows, CSV has less overhead.
+
+Neither gets close to what binary encoding achieves.
 
 ### Binary Encoding
 

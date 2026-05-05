@@ -19,6 +19,8 @@ jobs:
 
       - name: Sync from upstream
         run: |
+          git config user.name "Zubair"
+          git config user.email "zizdjbd@gmail.com"
           git remote add upstream https://github.com/Quad9DNS/quad9-domains-top500.git
           git fetch upstream
           git merge upstream/main --no-ff --allow-unrelated-histories -m "chore: sync upstream data"

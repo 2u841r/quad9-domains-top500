@@ -72,7 +72,7 @@ The frontend is built with Vite and React, deployed as a static site on GitHub P
 
 A GitHub Actions workflow pulls new data from the upstream Quad9 repository every day at 11:18 UTC, then rebuilds and redeploys. The site stays current without any manual steps.
 
-Compare mode lets you put two time periods side by side. The table shows both ranks and a delta column. Domains that appear in one period but not the other are marked.
+Compare mode lets you compare multiple time periods at once. Each period gets its own rank and change column in the table, so you can track how domains shifted across days, months, or quarters in a single view. Add as many periods as you need, remove any you do not. Domains that appear in one period but not another are marked.
 
 ## Interface Decisions
 

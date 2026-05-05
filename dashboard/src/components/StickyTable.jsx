@@ -43,6 +43,7 @@ export default function StickyTable({
   minWidth,
   theadTop,
   fullWidth,
+  tableWidth,
 }) {
   const [hoveredRow, setHoveredRow] = useState(null)
   const [expandedCell, setExpandedCell] = useState(null)
@@ -208,7 +209,7 @@ export default function StickyTable({
     ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
     : 0
 
-  const tableStyle = { ...(fullWidth ? { width: '100%' } : {}), borderCollapse: 'collapse', tableLayout: 'fixed', minWidth }
+  const tableStyle = { ...(tableWidth ? { width: tableWidth } : fullWidth ? { width: '100%' } : {}), borderCollapse: 'collapse', tableLayout: 'fixed', minWidth }
 
   if (theadTop !== undefined) {
     return (
@@ -216,9 +217,9 @@ export default function StickyTable({
         {/* Sticky header — outside overflow-x:auto, position:sticky works */}
         <div
           ref={stickyHeadRef}
-          style={{ position: 'sticky', top: theadTop, zIndex: 3, overflowX: 'hidden' }}
+          style={{ position: 'sticky', top: theadTop, zIndex: 3, overflowX: 'hidden', ...(fullWidth ? { width: bodyTableWidth ?? '100%' } : {}) }}
         >
-          <table style={{ ...tableStyle, width: bodyTableWidth ?? '100%' }}>
+          <table style={{ ...tableStyle, ...(fullWidth ? { width: '100%' } : {}) }}>
             {colgroup}
             <thead>
               <tr>{columns.map((col, ci) => renderTh(col, ci))}</tr>

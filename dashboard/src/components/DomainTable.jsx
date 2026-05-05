@@ -48,7 +48,8 @@ export default function DomainTable({ entries, compareCount, loading }) {
 
   const showAgg = entries[0]?.avgPosition != null
 
-  const minWidth = 52 + 260 + (showAgg ? 72 + 56 + 56 : 0) + compareCount * (84 + 72)
+  const domainColWidth = Math.min(Math.round(window.innerWidth / 2) - 52, 260)
+  const tableWidth = 52 + domainColWidth + (showAgg ? 72 + 56 + 56 : 0) + compareCount * (84 + 72)
 
   const compareCols = []
   for (let i = 0; i < compareCount; i++) {
@@ -83,8 +84,8 @@ export default function DomainTable({ entries, compareCount, loading }) {
       key: 'domain_name',
       label: 'Domain',
       sticky: true,
-      colWidth: 260,
-      maxWidth: 'calc(50vw - 52px)',
+      colWidth: domainColWidth,
+      maxWidth: domainColWidth,
       expandable: true,
       href: v => `https://${v}`,
       style: { color: 'var(--color-white)', fontFamily: 'monospace', paddingLeft: 'var(--space-xxxs)' },
@@ -150,7 +151,7 @@ export default function DomainTable({ entries, compareCount, loading }) {
           columns={columns}
           rows={filtered}
           theadTop={0}
-          minWidth={minWidth}
+          tableWidth={tableWidth}
           bgBase="var(--color-dark-gray)"
           bgHover="var(--color-darker-gray)"
         />

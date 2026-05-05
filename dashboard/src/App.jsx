@@ -130,7 +130,7 @@ export default function App() {
 
           <DomainTable
             entries={computeEntries(primaryData, compareItems)}
-            compareCount={compareItems.length}
+            compareCount={compareItems.length > 0 && compareItems.every(c => c.data) ? compareItems.length : 0}
             loading={primaryLoading && !primaryData}
           />
         </div>}

@@ -175,15 +175,15 @@ export default function Facts() {
                 key: 'count',
                 label: 'Days',
                 align: 'right',
-                style: { color: 'var(--color-lighter-gray)' },
-                render: (v, row) => `${v}/${facts.totalDays}`,
+                style: { color: 'var(--color-lighter-gray)', cursor: 'pointer' },
+                render: (v, row) => <span onClick={() => setModal({ title: `${row.domain} — missing days`, domains: row.missingDays })} style={{ cursor: 'pointer' }}>{v}/{facts.totalDays}</span>,
               },
               {
                 key: 'pct',
                 label: 'Coverage',
                 align: 'right',
-                style: { color: 'var(--color-accent)', fontFamily: 'monospace' },
-                render: v => `${(v * 100).toFixed(1)}%`,
+                style: { color: 'var(--color-accent)', fontFamily: 'monospace', cursor: 'pointer' },
+                render: (v, row) => <span onClick={() => setModal({ title: `${row.domain} — missing days`, domains: row.missingDays })} style={{ cursor: 'pointer' }}>{(v * 100).toFixed(1)}%</span>,
               },
             ]}
             rows={facts.mostConsistent}

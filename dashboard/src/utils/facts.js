@@ -8,6 +8,7 @@ export function computeFacts(allBuf, dict, manifest) {
   const dayCount   = new Map() // id → number of days appeared
   const totalPos   = new Map() // id → sum of positions
   const dowPos     = new Map() // id → [7][] of positions per day-of-week
+  const appearedOn = new Map() // id → Set of day indices
 
   for (let d = 0; d < totalDays; d++) {
     const dow = new Date(manifest[d] + 'T00:00:00Z').getUTCDay()
@@ -19,12 +20,18 @@ export function computeFacts(allBuf, dict, manifest) {
       totalPos.set(id, (totalPos.get(id) ?? 0) + pos)
       if (!dowPos.has(id)) dowPos.set(id, Array.from({ length: 7 }, () => []))
       dowPos.get(id)[dow].push(pos)
+      if (!appearedOn.has(id)) appearedOn.set(id, new Set())
+      appearedOn.get(id).add(d)
     }
   }
 
   // 1. Most consistent — top 20 by days appeared
   const allDomains = [...dayCount.entries()]
-    .map(([id, count]) => ({ domain: dict[id], count, pct: count / totalDays }))
+    .map(([id, count]) => {
+      const appeared = appearedOn.get(id)
+      const missingDays = manifest.filter((_, d) => !appeared.has(d))
+      return { domain: dict[id], count, pct: count / totalDays, missingDays }
+    })
     .sort((a, b) => b.count - a.count)
   const mostConsistent = allDomains.slice(0, 100)
 

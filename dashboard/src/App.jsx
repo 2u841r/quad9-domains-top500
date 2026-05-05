@@ -6,7 +6,6 @@ import ViewTabs from './components/ViewTabs'
 import PeriodSelector from './components/PeriodSelector'
 import DomainTable from './components/DomainTable'
 import ProgressBar from './components/ProgressBar'
-import TopChart from './components/TopChart'
 import Facts from './components/Facts'
 import Blog from './components/Blog'
 
@@ -38,7 +37,6 @@ export default function App() {
   const [primary, setPrimary] = useState(() => defaultPeriod('daily'))
   const [compare, setCompare] = useState(null)
   const [showCompare, setShowCompare] = useState(false)
-  const [showChart, setShowChart] = useState(false)
 
   const [primaryData, setPrimaryData] = useState(null)
   const [compareData, setCompareData] = useState(null)
@@ -98,14 +96,8 @@ export default function App() {
         {view === 'facts' ? <Facts /> : view === 'blog' ? <Blog /> : <>
           {/* Controls */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
               <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" exclude={showCompare ? compare : null} />
-              {showCompare && (
-                <PeriodSelector view={view} period={compare} onChange={setCompare} label="Compare" exclude={primary} />
-              )}
-            </div>
-
-            <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
               <ToggleBtn
                 active={showCompare}
                 onClick={() => {
@@ -119,14 +111,10 @@ export default function App() {
               >
                 {showCompare ? 'Remove compare' : '+ Compare'}
               </ToggleBtn>
-              <ToggleBtn
-                active={showChart}
-                onClick={() => setShowChart(v => !v)}
-                activeColor="var(--color-normal-gray)"
-              >
-                {showChart ? 'Hide chart' : 'Show chart'}
-              </ToggleBtn>
             </div>
+            {showCompare && (
+              <PeriodSelector view={view} period={compare} onChange={setCompare} label="Compare" exclude={primary} />
+            )}
           </div>
 
           {/* Progress */}
@@ -152,10 +140,6 @@ export default function App() {
                 </span>
               )}
             </div>
-          )}
-
-          {showChart && primaryData && (
-            <TopChart entries={primaryData} compareEntries={compareData} />
           )}
 
           <DomainTable

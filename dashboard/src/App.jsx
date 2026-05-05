@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { defaultPeriod, periodLabel, periodId, addDays } from './utils/dates'
-import { withDeltas } from './utils/aggregate'
-import { useQuad9Data } from './hooks/useQuad9Data'
+import { withMultiDeltas } from './utils/aggregate'
+import { useQuad9Data, fetchPeriodData } from './hooks/useQuad9Data'
 import ViewTabs from './components/ViewTabs'
 import PeriodSelector from './components/PeriodSelector'
 import DomainTable from './components/DomainTable'
 import ProgressBar from './components/ProgressBar'
 import Facts from './components/Facts'
 import Blog from './components/Blog'
+
+let nextCmpId = 0
 
 function Header() {
   return (
@@ -35,48 +37,47 @@ function Header() {
 export default function App() {
   const [view, setView] = useState('daily')
   const [primary, setPrimary] = useState(() => defaultPeriod('daily'))
-  const [compare, setCompare] = useState(null)
-  const [showCompare, setShowCompare] = useState(false)
+  const [compareItems, setCompareItems] = useState([])
 
   const [primaryData, setPrimaryData] = useState(null)
-  const [compareData, setCompareData] = useState(null)
   const [primaryLoading, setPrimaryLoading] = useState(false)
 
-  const hook1 = useQuad9Data()
-  const hook2 = useQuad9Data()
+  const primaryHook = useQuad9Data()
+
+  const onCompareDataLoaded = useCallback((id, data) => {
+    setCompareItems(prev => prev.map(c => c.id === id ? { ...c, data } : c))
+  }, [])
 
   useEffect(() => {
     const def = defaultPeriod(view)
     setPrimary(def)
-    setCompare(null)
-    setShowCompare(false)
+    setCompareItems([])
     setPrimaryData(null)
-    setCompareData(null)
   }, [view])
 
   useEffect(() => {
     if (!primary) return
     setPrimaryData(null)
     setPrimaryLoading(true)
-    hook1.fetchPeriod(primary).then(data => {
+    primaryHook.fetchPeriod(primary).then(data => {
       setPrimaryData(data)
       setPrimaryLoading(false)
     })
   }, [primary ? periodId(primary) : ''])
 
-  useEffect(() => {
-    if (!compare || !showCompare) {
-      setCompareData(null)
-      return
-    }
-    hook2.fetchPeriod(compare).then(data => setCompareData(data))
-  }, [compare ? periodId(compare) : '', showCompare])
+  const addCompare = useCallback(() => {
+    const id = nextCmpId++
+    const lastPeriod = compareItems.length > 0 ? compareItems[compareItems.length - 1].period : primary
+    setCompareItems(prev => [...prev, { id, period: adjacentPeriod(lastPeriod) }])
+  }, [primary, compareItems])
 
-  const displayEntries = primaryData && compareData
-    ? withDeltas(primaryData, compareData)
-    : primaryData ?? null
+  const removeCompare = useCallback((id) => {
+    setCompareItems(prev => prev.filter(c => c.id !== id))
+  }, [])
 
-  const hasCompare = !!(primaryData && compareData)
+  const updateComparePeriod = useCallback((id, period) => {
+    setCompareItems(prev => prev.map(c => c.id === id ? { ...c, period } : c))
+  }, [])
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-dark-gray)', color: 'var(--color-white)', display: 'flex', flexDirection: 'column' }}>
@@ -95,56 +96,41 @@ export default function App() {
       }}>
         {view === 'facts' ? <Facts /> : view === 'blog' ? <Blog /> : <>
           {/* Controls */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-xs)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
-              <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" exclude={showCompare ? compare : null} />
-              <ToggleBtn
-                active={showCompare}
-                onClick={() => {
-                  setShowCompare(v => {
-                    if (!v && primary) setCompare(adjacentPeriod(primary))
-                    if (v) setCompareData(null)
-                    return !v
-                  })
-                }}
-                activeColor="var(--color-accent)"
-              >
-                {showCompare ? 'Remove compare' : '+ Compare'}
-              </ToggleBtn>
+          <div style={{ display: 'grid', gridTemplateColumns: '60px auto auto', alignItems: 'center', gap: 'var(--space-xs) var(--space-xs)' }}>
+            <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" excludes={compareItems.map(c => c.period)} />
+            <div style={{ display: 'flex', gap: 'var(--space-xxs)', minHeight: 32 }}>
+              {compareItems.length === 0 && (
+                <button onClick={addCompare} style={actionBtnStyle}>+ Compare</button>
+              )}
             </div>
-            {showCompare && (
-              <PeriodSelector view={view} period={compare} onChange={setCompare} label="Compare" exclude={primary} />
-            )}
+            {compareItems.map((cmp, i) => (
+              <CompareRow
+                key={cmp.id}
+                view={view}
+                compare={cmp}
+                index={i}
+                isLast={i === compareItems.length - 1}
+                excludes={[primary, ...compareItems.filter((_, j) => j !== i).map(c => c.period)]}
+                onPeriodChange={updateComparePeriod}
+                onRemove={removeCompare}
+                onAdd={addCompare}
+                onDataLoaded={onCompareDataLoaded}
+              />
+            ))}
           </div>
 
           {/* Progress */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xxxs)' }}>
-            <ProgressBar loading={hook1.loading} progress={hook1.progress} />
-            {showCompare && <ProgressBar loading={hook2.loading} progress={hook2.progress} />}
+            <ProgressBar loading={primaryHook.loading} progress={primaryHook.progress} />
           </div>
 
-          {hook1.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{hook1.error}</p>}
-          {hook2.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{hook2.error}</p>}
+          {primaryHook.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{primaryHook.error}</p>}
 
-          {/* Period labels */}
-          {primaryData && (
-            <div style={{ display: 'flex', gap: 'var(--space-md)', fontSize: 'var(--font-size-lg)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-accent)', flexShrink: 0 }} />
-                <span style={{ color: 'var(--color-white)' }}>{periodLabel(primary)}</span>
-              </span>
-              {hasCompare && compare && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-normal-gray)', flexShrink: 0 }} />
-                  <span style={{ color: 'var(--color-white)' }}>{periodLabel(compare)}</span>
-                </span>
-              )}
-            </div>
-          )}
+          <CompareLabels primary={primary} primaryData={primaryData} compareItems={compareItems} />
 
           <DomainTable
-            entries={displayEntries}
-            hasCompare={hasCompare}
+            entries={computeEntries(primaryData, compareItems)}
+            compareCount={compareItems.length}
             loading={primaryLoading && !primaryData}
           />
         </>}
@@ -180,26 +166,90 @@ export default function App() {
   )
 }
 
-function ToggleBtn({ active, onClick, activeColor, children }) {
+function computeEntries(primaryData, compareItems) {
+  if (!primaryData) return null
+  if (compareItems.length === 0) return primaryData
+  const allLoaded = compareItems.every(c => c.data)
+  if (!allLoaded) return primaryData
+  return withMultiDeltas(primaryData, compareItems.map((c, i) => ({ entries: c.data, index: i })))
+}
+
+const compareColors = [
+  'var(--color-accent)',
+  '#a78bfa',
+  '#38bdf8',
+  '#fb923c',
+  '#f472b6',
+  '#34d399',
+  '#fbbf24',
+  '#818cf8',
+]
+
+function CompareLabels({ primary, primaryData, compareItems }) {
+  if (!primaryData) return null
   return (
-    <button
-      onClick={onClick}
-      style={{
-        fontSize: 'var(--font-size-lg)',
-        padding: 'var(--space-xxs) var(--space-sm)',
-        borderRadius: 'var(--border-radius-default)',
-        border: `1px solid ${active ? activeColor : 'var(--color-normal-gray)'}`,
-        color: active ? activeColor : 'var(--color-lighter-gray)',
-        backgroundColor: active ? `${activeColor}18` : 'transparent',
-        cursor: 'pointer',
-        transition: 'var(--hover-transition)',
-        fontFamily: 'var(--font-family)',
-        fontWeight: 'var(--font-weight)',
-      }}
-    >
-      {children}
-    </button>
+    <div style={{ display: 'flex', gap: 'var(--space-md)', fontSize: 'var(--font-size-lg)', flexWrap: 'wrap' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)' }}>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: compareColors[0], flexShrink: 0 }} />
+        <span style={{ color: 'var(--color-white)' }}>{periodLabel(primary)}</span>
+      </span>
+      {compareItems.map((cmp, i) => (
+        <span key={cmp.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)' }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: compareColors[(i + 1) % compareColors.length], flexShrink: 0 }} />
+          <span style={{ color: 'var(--color-white)' }}>{periodLabel(cmp.period)}</span>
+        </span>
+      ))}
+    </div>
   )
+}
+
+function CompareRow({ view, compare, index, isLast, excludes, onPeriodChange, onRemove, onAdd, onDataLoaded }) {
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!compare.period) return
+    let cancelled = false
+    setLoading(true)
+    fetchPeriodData(compare.period)
+      .then(data => {
+        if (!cancelled && data) {
+          onDataLoaded(compare.id, data)
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [compare.period ? periodId(compare.period) : ''])
+
+  return (
+    <>
+      <PeriodSelector
+        view={view}
+        period={compare.period}
+        onChange={p => onPeriodChange(compare.id, p)}
+        label={`C${index + 1}`}
+        excludes={excludes}
+      />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)', minHeight: 32 }}>
+        <button onClick={() => onRemove(compare.id)} style={actionBtnStyle}>x</button>
+        {loading && <span style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-lighter-gray)' }}>...</span>}
+        {isLast && <button onClick={onAdd} style={actionBtnStyle}>+ Compare</button>}
+      </div>
+    </>
+  )
+}
+
+const actionBtnStyle = {
+  fontSize: 'var(--font-size-lg)',
+  padding: 'var(--space-xxs) var(--space-sm)',
+  borderRadius: 'var(--border-radius-default)',
+  border: '1px solid var(--color-normal-gray)',
+  color: 'var(--color-lighter-gray)',
+  backgroundColor: 'transparent',
+  cursor: 'pointer',
+  transition: 'var(--hover-transition)',
+  fontFamily: 'var(--font-family)',
+  fontWeight: 'var(--font-weight)',
 }
 
 function adjacentPeriod(period) {

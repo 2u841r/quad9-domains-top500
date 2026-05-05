@@ -69,41 +69,35 @@ export function getRawData() {
   return { allBuf, dict, manifest: allManifest }
 }
 
+export async function fetchPeriodData(period) {
+  const { start, end } = getPeriodRange(period)
+
+  if (period.type === 'day') {
+    const data = await fetchDay(start)
+    if (!data) throw new Error(`No data for ${start}`)
+    return data
+  }
+
+  await loadAllBin()
+  const dates = getDatesInRange(start, end)
+  const dayResults = dates.map(sliceDay).filter(Boolean)
+  if (dayResults.length === 0) throw new Error('No data found for this period')
+  return aggregateDays(dayResults)
+}
+
 export function useQuad9Data() {
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState(null)
 
   const fetchPeriod = useCallback(async (period) => {
-    const { start, end } = getPeriodRange(period)
     setError(null)
-
-    if (period.type === 'day') {
-      setLoading(true)
-      setProgress(0)
-      try {
-        const data = await fetchDay(start)
-        if (!data) throw new Error(`No data for ${start}`)
-        setProgress(100)
-        return data
-      } catch (e) {
-        setError(e.message)
-        return null
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    // Aggregate view — load all.bin once then slice in memory
     setLoading(true)
     setProgress(50)
     try {
-      await loadAllBin()
+      const data = await fetchPeriodData(period)
       setProgress(100)
-      const dates = getDatesInRange(start, end)
-      const dayResults = dates.map(sliceDay).filter(Boolean)
-      if (dayResults.length === 0) throw new Error('No data found for this period')
-      return aggregateDays(dayResults)
+      return data
     } catch (e) {
       setError(e.message)
       return null

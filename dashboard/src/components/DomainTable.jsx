@@ -21,7 +21,7 @@ function DeltaBadge({ delta }) {
   )
 }
 
-export default function DomainTable({ entries, hasCompare, loading }) {
+export default function DomainTable({ entries, compareCount, loading }) {
   const [search, setSearch] = useState('')
 
   const filtered = search
@@ -48,8 +48,28 @@ export default function DomainTable({ entries, hasCompare, loading }) {
 
   const showAgg = entries[0]?.avgPosition != null
 
-  // 52 (#) + 180 (domain min) + fixed data col widths
-  const minWidth = 52 + 180 + (showAgg ? 72 + 56 + 56 : 0) + (hasCompare ? 84 + 72 : 0)
+  const minWidth = 52 + 180 + (showAgg ? 72 + 56 + 56 : 0) + compareCount * (84 + 72)
+
+  const compareCols = []
+  for (let i = 0; i < compareCount; i++) {
+    compareCols.push(
+      {
+        key: `comparePos_${i}`,
+        label: `C${i + 1}`,
+        colWidth: 84,
+        align: 'right',
+        style: { color: 'var(--color-lighter-gray)', fontFamily: 'monospace' },
+        render: v => v ?? <span style={{ color: 'var(--color-normal-gray)' }}>n/a</span>,
+      },
+      {
+        key: `delta_${i}`,
+        label: `Chg${i + 1}`,
+        colWidth: 72,
+        align: 'right',
+        render: v => <DeltaBadge delta={v} />,
+      },
+    )
+  }
 
   const columns = [
     {
@@ -93,23 +113,7 @@ export default function DomainTable({ entries, hasCompare, loading }) {
         style: { color: 'var(--color-lighter-gray)' },
       },
     ] : []),
-    ...(hasCompare ? [
-      {
-        key: 'comparePosition',
-        label: 'Compare #',
-        colWidth: 84,
-        align: 'right',
-        style: { color: 'var(--color-lighter-gray)', fontFamily: 'monospace' },
-        render: v => v ?? <span style={{ color: 'var(--color-normal-gray)' }}>n/a</span>,
-      },
-      {
-        key: 'delta',
-        label: 'Change',
-        colWidth: 72,
-        align: 'right',
-        render: v => <DeltaBadge delta={v} />,
-      },
-    ] : []),
+    ...compareCols,
   ]
 
   return (

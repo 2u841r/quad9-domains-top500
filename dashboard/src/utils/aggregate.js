@@ -34,15 +34,15 @@ function buildCompareMap(entries) {
   return new Map(entries.map(e => [e.domain_name, e.position]))
 }
 
-export function withDeltas(primaryEntries, compareEntries) {
-  const cmap = buildCompareMap(compareEntries)
+export function withMultiDeltas(primaryEntries, compareList) {
+  const maps = compareList.map(c => buildCompareMap(c.entries))
   return primaryEntries.map(entry => {
-    const cpos = cmap.get(entry.domain_name) ?? null
-    return {
-      ...entry,
-      comparePosition: cpos,
-      // positive = moved up in rank (lower number = better)
-      delta: cpos != null ? cpos - entry.position : null,
-    }
+    const result = { ...entry }
+    compareList.forEach((c, i) => {
+      const cpos = maps[i].get(entry.domain_name) ?? null
+      result[`comparePos_${i}`] = cpos
+      result[`delta_${i}`] = cpos != null ? cpos - entry.position : null
+    })
+    return result
   })
 }

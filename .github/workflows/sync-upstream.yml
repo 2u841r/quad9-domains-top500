@@ -23,5 +23,11 @@ jobs:
           git config user.email "zizdjbd@gmail.com"
           git remote add upstream https://github.com/Quad9DNS/quad9-domains-top500.git
           git fetch upstream
-          git merge upstream/main --no-ff --allow-unrelated-histories -m "chore: sync upstream data"
+          latest_upstream_file="$(git diff --name-only HEAD..upstream/main -- 'top500-*.json' | sort | tail -n 1)"
+          if [ -n "$latest_upstream_file" ]; then
+            merge_msg="chore: sync upstream ${latest_upstream_file}"
+          else
+            merge_msg="chore: sync upstream data"
+          fi
+          git merge upstream/main --no-ff --allow-unrelated-histories -m "$merge_msg"
           git push origin main

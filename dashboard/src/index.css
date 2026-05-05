@@ -58,7 +58,11 @@ body {
   font-weight: var(--font-weight);
 }
 
+@media (max-width: 599px) {
+  .hide-mobile { display: none; }
+}
 @media (min-width: 600px) {
+  .show-mobile { display: none; }
   .len-grid { grid-template-columns: repeat(6, 1fr) !important; }
 }
 @media (min-width: 960px) {

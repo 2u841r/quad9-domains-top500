@@ -100,7 +100,10 @@ export default function App() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
               <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" excludes={compareItems.map(c => c.period)} />
               {compareItems.length === 0 && (
-                <button onClick={addCompare} style={actionBtnStyle}>+ Compare</button>
+                <button onClick={addCompare} style={actionBtnStyle}>
+                  <span className="hide-mobile">+ Compare</span>
+                  <span className="show-mobile">+</span>
+                </button>
               )}
             </div>
             {compareItems.map((cmp, i) => (

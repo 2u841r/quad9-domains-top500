@@ -145,7 +145,6 @@ export default function DomainTable({ entries, compareCount, loading }) {
         borderRadius: 'var(--border-radius-default)',
         border: '1px solid var(--color-darkest-gray)',
         maxWidth: '100%',
-        overflow: 'hidden',
       }}>
         <StickyTable
           columns={columns}

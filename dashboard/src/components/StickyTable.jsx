@@ -207,7 +207,7 @@ export default function StickyTable({
     ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
     : 0
 
-  const tableStyle = { width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', minWidth }
+  const tableStyle = { borderCollapse: 'collapse', tableLayout: 'fixed', minWidth }
 
   if (theadTop !== undefined) {
     return (

@@ -87,18 +87,18 @@ export default function App() {
       <main style={{
         flex: 1,
         padding: 'var(--space-md) var(--space-xs)',
-        maxWidth: view === 'facts' ? 960 : view === 'blog' ? 780 : 780,
+        maxWidth: view === 'facts' ? 960 : view === 'blog' ? 780 : undefined,
         margin: '0 auto',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-md)',
       }}>
-        {view === 'facts' ? <Facts /> : view === 'blog' ? <Blog /> : <>
+        {view === 'facts' ? <Facts /> : view === 'blog' ? <Blog /> : <div style={{ width: 'fit-content', maxWidth: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           {/* Controls */}
-          <div style={{ display: 'grid', gridTemplateColumns: '60px auto auto', alignItems: 'center', gap: 'var(--space-xs) var(--space-xs)' }}>
-            <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" excludes={compareItems.map(c => c.period)} />
-            <div style={{ display: 'flex', gap: 'var(--space-xxs)', minHeight: 32 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-xs)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
+              <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" excludes={compareItems.map(c => c.period)} />
               {compareItems.length === 0 && (
                 <button onClick={addCompare} style={actionBtnStyle}>+ Compare</button>
               )}
@@ -133,7 +133,7 @@ export default function App() {
             compareCount={compareItems.length}
             loading={primaryLoading && !primaryData}
           />
-        </>}
+        </div>}
       </main>
 
       <footer style={{
@@ -222,7 +222,7 @@ function CompareRow({ view, compare, index, isLast, excludes, onPeriodChange, on
   }, [compare.period ? periodId(compare.period) : ''])
 
   return (
-    <>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
       <PeriodSelector
         view={view}
         period={compare.period}
@@ -230,12 +230,10 @@ function CompareRow({ view, compare, index, isLast, excludes, onPeriodChange, on
         label={`C${index + 1}`}
         excludes={excludes}
       />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)', minHeight: 32 }}>
-        <button onClick={() => onRemove(compare.id)} style={actionBtnStyle}>x</button>
-        {loading && <span style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-lighter-gray)' }}>...</span>}
-        {isLast && <button onClick={onAdd} style={actionBtnStyle}>+ Compare</button>}
-      </div>
-    </>
+      <button onClick={() => onRemove(compare.id)} style={actionBtnStyle}>x</button>
+      {loading && <span style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-lighter-gray)' }}>...</span>}
+      {isLast && <button onClick={onAdd} style={actionBtnStyle}>+ Compare</button>}
+    </div>
   )
 }
 

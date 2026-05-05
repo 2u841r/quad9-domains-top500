@@ -103,7 +103,7 @@ function YearSelector({ period, onChange, excludes }) {
 
 export default function PeriodSelector({ view, period, onChange, label, excludes }) {
   return (
-    <>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
       <span style={{
         fontSize: 'var(--font-size-md)',
         color: 'var(--color-lighterish-gray)',
@@ -120,6 +120,6 @@ export default function PeriodSelector({ view, period, onChange, label, excludes
         {view === 'quarterly' && <QuarterSelector period={period} onChange={onChange} excludes={excludes} />}
         {view === 'yearly' && <YearSelector period={period} onChange={onChange} excludes={excludes} />}
       </div>
-    </>
+    </div>
   )
 }

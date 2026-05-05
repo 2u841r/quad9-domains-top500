@@ -48,7 +48,7 @@ export default function DomainTable({ entries, compareCount, loading }) {
 
   const showAgg = entries[0]?.avgPosition != null
 
-  const minWidth = 52 + 180 + (showAgg ? 72 + 56 + 56 : 0) + compareCount * (84 + 72)
+  const minWidth = 52 + 260 + (showAgg ? 72 + 56 + 56 : 0) + compareCount * (84 + 72)
 
   const compareCols = []
   for (let i = 0; i < compareCount; i++) {
@@ -83,10 +83,10 @@ export default function DomainTable({ entries, compareCount, loading }) {
       key: 'domain_name',
       label: 'Domain',
       sticky: true,
-      maxWidth: 'min(calc(50vw - 52px), 260px)',
+      colWidth: 260,
+      maxWidth: 'calc(50vw - 52px)',
       expandable: true,
       href: v => `https://${v}`,
-      colWidth: 'min(calc(50vw - 52px), 260px)',
       style: { color: 'var(--color-white)', fontFamily: 'monospace', paddingLeft: 'var(--space-xxxs)' },
     },
     ...(showAgg ? [
@@ -144,6 +144,8 @@ export default function DomainTable({ entries, compareCount, loading }) {
       <div style={{
         borderRadius: 'var(--border-radius-default)',
         border: '1px solid var(--color-darkest-gray)',
+        maxWidth: '100%',
+        overflow: 'hidden',
       }}>
         <StickyTable
           columns={columns}

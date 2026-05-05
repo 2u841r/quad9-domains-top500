@@ -235,7 +235,7 @@ function CompareRow({ view, compare, index, isLast, excludes, onPeriodChange, on
       />
       <button onClick={() => onRemove(compare.id)} style={actionBtnStyle}>x</button>
       {loading && <span style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-lighter-gray)' }}>...</span>}
-      {isLast && <button onClick={onAdd} style={actionBtnStyle}>+ Compare</button>}
+      {isLast && <button onClick={onAdd} style={actionBtnStyle}><span className="hide-mobile">+ Compare</span><span className="show-mobile">+</span></button>}
     </div>
   )
 }

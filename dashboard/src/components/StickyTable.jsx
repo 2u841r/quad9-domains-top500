@@ -42,6 +42,7 @@ export default function StickyTable({
   bgHover = 'var(--color-darker-gray)',
   minWidth,
   theadTop,
+  fullWidth,
 }) {
   const [hoveredRow, setHoveredRow] = useState(null)
   const [expandedCell, setExpandedCell] = useState(null)
@@ -207,7 +208,7 @@ export default function StickyTable({
     ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
     : 0
 
-  const tableStyle = { borderCollapse: 'collapse', tableLayout: 'fixed', minWidth }
+  const tableStyle = { ...(fullWidth ? { width: '100%' } : {}), borderCollapse: 'collapse', tableLayout: 'fixed', minWidth }
 
   if (theadTop !== undefined) {
     return (

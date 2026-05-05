@@ -163,6 +163,7 @@ export default function Facts() {
         {({ theadTop }) => (
           <StickyTable
             theadTop={theadTop}
+            fullWidth
             columns={[
               {
                 key: 'domain',
@@ -198,6 +199,7 @@ export default function Facts() {
         {({ theadTop }) => (
         <StickyTable
           theadTop={theadTop}
+          fullWidth
           minWidth={520}
           columns={[
             {

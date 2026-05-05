@@ -87,7 +87,7 @@ export default function App() {
       <main style={{
         flex: 1,
         padding: 'var(--space-md) var(--space-xs)',
-        maxWidth: view === 'facts' ? 960 : view === 'blog' ? 780 : undefined,
+        maxWidth: view === 'facts' ? 780 : view === 'blog' ? 780 : undefined,
         margin: '0 auto',
         width: '100%',
         display: 'flex',

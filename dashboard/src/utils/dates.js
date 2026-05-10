@@ -20,6 +20,10 @@ export function today() {
   return new Date().toISOString().slice(0, 10)
 }
 
+function dataDate(latestDate) {
+  return latestDate ?? today()
+}
+
 function getMonthRange(year, month) {
   const start = `${year}-${String(month).padStart(2, '0')}-01`
   const lastDay = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10)
@@ -39,9 +43,10 @@ function getYearRange(year) {
 }
 
 export function getPeriodRange(period) {
+  const maxDate = dataDate(period.latestDate)
   const cap = (range) => ({
     start: range.start < FIRST_DATE ? FIRST_DATE : range.start,
-    end: range.end > today() ? today() : range.end,
+    end: range.end > maxDate ? maxDate : range.end,
   })
   if (period.type === 'day') return { start: period.date, end: period.date }
   if (period.type === 'month') return cap(getMonthRange(period.year, period.month))
@@ -66,15 +71,12 @@ export function periodId(period) {
   if (period.type === 'year') return `${period.year}`
 }
 
-export function defaultPeriod(view) {
-  const now = new Date()
-  const y = now.getUTCFullYear()
-  const m = now.getUTCMonth() + 1
+export function defaultPeriod(view, latestDate) {
+  const clampedDate = dataDate(latestDate) < FIRST_DATE ? FIRST_DATE : dataDate(latestDate)
+  const d = new Date(clampedDate + 'T00:00:00Z')
+  const y = d.getUTCFullYear()
+  const m = d.getUTCMonth() + 1
   const q = Math.ceil(m / 3)
-  // Upstream publishes ~10:02 UTC: yesterday's data is available after that, otherwise two days ago
-  const syncedHour = now.getUTCHours() * 60 + now.getUTCMinutes() >= 10 * 60 + 2
-  const latestDate = addDays(today(), syncedHour ? -1 : -2)
-  const clampedDate = latestDate < FIRST_DATE ? FIRST_DATE : latestDate
 
   if (view === 'daily') return { type: 'day', date: clampedDate }
   if (view === 'monthly') return { type: 'month', year: y, month: m }
@@ -82,17 +84,17 @@ export function defaultPeriod(view) {
   if (view === 'yearly') return { type: 'year', year: y }
 }
 
-export function availableYears() {
+export function availableYears(latestDate) {
   const first = 2025
-  const cur = new Date().getUTCFullYear()
+  const cur = new Date(dataDate(latestDate) + 'T00:00:00Z').getUTCFullYear()
   const out = []
   for (let y = cur; y >= first; y--) out.push(y)
   return out
 }
 
-export function availableMonths(year) {
+export function availableMonths(year, latestDate) {
   const firstYear = 2025, firstMonth = 6
-  const now = new Date()
+  const now = new Date(dataDate(latestDate) + 'T00:00:00Z')
   const curY = now.getUTCFullYear()
   const curM = now.getUTCMonth() + 1
   const out = []
@@ -104,8 +106,8 @@ export function availableMonths(year) {
   return out
 }
 
-export function availableQuarters(year) {
-  const now = new Date()
+export function availableQuarters(year, latestDate) {
+  const now = new Date(dataDate(latestDate) + 'T00:00:00Z')
   const curY = now.getUTCFullYear()
   const curQ = Math.ceil((now.getUTCMonth() + 1) / 3)
   const out = []

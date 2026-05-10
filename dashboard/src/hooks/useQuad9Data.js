@@ -22,12 +22,25 @@ function loadDict() {
 let allBinPromise = null
 let allBuf = null      // Uint16Array
 let allManifest = null // string[]
+let manifestPromise = null
+
+export function loadManifest() {
+  if (!manifestPromise) {
+    manifestPromise = fetch(BASE + 'manifest.json')
+      .then(r => r.json())
+      .then(dates => {
+        allManifest = dates
+        return dates
+      })
+  }
+  return manifestPromise
+}
 
 export function loadAllBin() {
   if (!allBinPromise) {
     allBinPromise = Promise.all([
       loadDict(),
-      fetch(BASE + 'manifest.json').then(r => r.json()),
+      loadManifest(),
       fetch(BASE + 'all.bin').then(r => r.arrayBuffer()).then(b => new Uint16Array(b)),
     ]).then(([, dates, buf]) => {
       allManifest = dates

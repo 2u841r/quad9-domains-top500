@@ -6,8 +6,9 @@ on:
     paths:
       - "dashboard/**"
       - "top500-*.json"
-  schedule:
-    - cron: "12 10 * * *"
+  workflow_run:
+    workflows: ["Sync upstream"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -21,11 +22,14 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     outputs:
       pages_artifact_name: ${{ steps.pages-artifact.outputs.name }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: refs/heads/main
 
       - uses: pnpm/action-setup@v6
         with:

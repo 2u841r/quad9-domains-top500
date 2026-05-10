@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { defaultPeriod, periodLabel, periodId, addDays } from './utils/dates'
 import { withMultiDeltas } from './utils/aggregate'
-import { useQuad9Data, fetchPeriodData } from './hooks/useQuad9Data'
+import { useQuad9Data, fetchPeriodData, loadManifest } from './hooks/useQuad9Data'
 import ViewTabs from './components/ViewTabs'
 import PeriodSelector from './components/PeriodSelector'
 import DomainTable from './components/DomainTable'
@@ -36,8 +36,9 @@ function Header() {
 
 export default function App() {
   const [view, setView] = useState('daily')
-  const [primary, setPrimary] = useState(() => defaultPeriod('daily'))
+  const [primary, setPrimary] = useState(null)
   const [compareItems, setCompareItems] = useState([])
+  const [latestDate, setLatestDate] = useState(undefined)
 
   const [primaryData, setPrimaryData] = useState(null)
   const [primaryLoading, setPrimaryLoading] = useState(false)
@@ -49,11 +50,18 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    const def = defaultPeriod(view)
+    loadManifest()
+      .then(dates => setLatestDate(dates[dates.length - 1] ?? null))
+      .catch(() => setLatestDate(null))
+  }, [])
+
+  useEffect(() => {
+    if (latestDate === undefined) return
+    const def = defaultPeriod(view, latestDate)
     setPrimary(def)
     setCompareItems([])
     setPrimaryData(null)
-  }, [view])
+  }, [view, latestDate])
 
   useEffect(() => {
     if (!primary) return
@@ -98,8 +106,8 @@ export default function App() {
           {/* Controls */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-xs)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
-              <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" excludes={compareItems.map(c => c.period)} />
-              {compareItems.length === 0 && (
+              <PeriodSelector view={view} period={primary} onChange={setPrimary} label="Period" excludes={compareItems.map(c => c.period)} latestDate={latestDate} />
+              {primary && compareItems.length === 0 && (
                 <button onClick={addCompare} style={actionBtnStyle}>
                   <span className="hide-mobile">+ Compare</span>
                   <span className="show-mobile">+</span>
@@ -113,6 +121,7 @@ export default function App() {
                 compare={cmp}
                 index={i}
                 isLast={i === compareItems.length - 1}
+                latestDate={latestDate}
                 excludes={[primary, ...compareItems.filter((_, j) => j !== i).map(c => c.period)]}
                 onPeriodChange={updateComparePeriod}
                 onRemove={removeCompare}
@@ -206,7 +215,7 @@ function CompareLabels({ primary, primaryData, compareItems }) {
   )
 }
 
-function CompareRow({ view, compare, index, isLast, excludes, onPeriodChange, onRemove, onAdd, onDataLoaded }) {
+function CompareRow({ view, compare, index, isLast, latestDate, excludes, onPeriodChange, onRemove, onAdd, onDataLoaded }) {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -232,6 +241,7 @@ function CompareRow({ view, compare, index, isLast, excludes, onPeriodChange, on
         onChange={p => onPeriodChange(compare.id, p)}
         label={`C${index + 1}`}
         excludes={excludes}
+        latestDate={latestDate}
       />
       <button onClick={() => onRemove(compare.id)} style={actionBtnStyle}>x</button>
       {loading && <span style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-lighter-gray)' }}>...</span>}

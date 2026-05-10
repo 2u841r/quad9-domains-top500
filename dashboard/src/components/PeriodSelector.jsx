@@ -27,14 +27,14 @@ function Select({ value, onChange, children }) {
   )
 }
 
-function DaySelector({ period, onChange, excludes }) {
+function DaySelector({ period, onChange, excludes, latestDate }) {
   const disabledDates = new Set((excludes || []).map(p => p?.date).filter(Boolean))
   return (
     <input
       type="date"
       value={period?.date ?? ''}
       min={FIRST_DATE}
-      max={today()}
+      max={latestDate ?? today()}
       onChange={e => {
         const d = e.target.value
         if (!disabledDates.has(d)) onChange({ type: 'day', date: d })
@@ -48,10 +48,10 @@ function isExcluded(excludes, type, matchFn) {
   return (excludes || []).some(e => e?.type === type && matchFn(e))
 }
 
-function MonthSelector({ period, onChange, excludes }) {
-  const years = availableYears()
+function MonthSelector({ period, onChange, excludes, latestDate }) {
+  const years = availableYears(latestDate)
   const year = period?.year ?? years[0]
-  const months = availableMonths(year)
+  const months = availableMonths(year, latestDate)
   return (
     <div style={{ display: 'flex', gap: 'var(--space-xxs)' }}>
       <Select value={year} onChange={v => onChange({ type: 'month', year: +v, month: period?.month ?? months[0] })}>
@@ -68,10 +68,10 @@ function MonthSelector({ period, onChange, excludes }) {
   )
 }
 
-function QuarterSelector({ period, onChange, excludes }) {
-  const years = availableYears()
+function QuarterSelector({ period, onChange, excludes, latestDate }) {
+  const years = availableYears(latestDate)
   const year = period?.year ?? years[0]
-  const quarters = availableQuarters(year)
+  const quarters = availableQuarters(year, latestDate)
   return (
     <div style={{ display: 'flex', gap: 'var(--space-xxs)' }}>
       <Select value={year} onChange={v => onChange({ type: 'quarter', year: +v, quarter: period?.quarter ?? quarters[0] })}>
@@ -88,8 +88,8 @@ function QuarterSelector({ period, onChange, excludes }) {
   )
 }
 
-function YearSelector({ period, onChange, excludes }) {
-  const years = availableYears()
+function YearSelector({ period, onChange, excludes, latestDate }) {
+  const years = availableYears(latestDate)
   return (
     <Select value={period?.year ?? years[0]} onChange={v => onChange({ type: 'year', year: +v })}>
       {years.map(y => (
@@ -101,7 +101,7 @@ function YearSelector({ period, onChange, excludes }) {
   )
 }
 
-export default function PeriodSelector({ view, period, onChange, label, excludes }) {
+export default function PeriodSelector({ view, period, onChange, label, excludes, latestDate }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
       <span style={{
@@ -115,10 +115,10 @@ export default function PeriodSelector({ view, period, onChange, label, excludes
         {label}
       </span>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        {view === 'daily' && <DaySelector period={period} onChange={onChange} excludes={excludes} />}
-        {view === 'monthly' && <MonthSelector period={period} onChange={onChange} excludes={excludes} />}
-        {view === 'quarterly' && <QuarterSelector period={period} onChange={onChange} excludes={excludes} />}
-        {view === 'yearly' && <YearSelector period={period} onChange={onChange} excludes={excludes} />}
+        {view === 'daily' && <DaySelector period={period} onChange={onChange} excludes={excludes} latestDate={latestDate} />}
+        {view === 'monthly' && <MonthSelector period={period} onChange={onChange} excludes={excludes} latestDate={latestDate} />}
+        {view === 'quarterly' && <QuarterSelector period={period} onChange={onChange} excludes={excludes} latestDate={latestDate} />}
+        {view === 'yearly' && <YearSelector period={period} onChange={onChange} excludes={excludes} latestDate={latestDate} />}
       </div>
     </div>
   )

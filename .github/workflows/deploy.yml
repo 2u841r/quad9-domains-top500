@@ -4,10 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'dashboard/**'
-      - 'top500-*.json'
+      - "dashboard/**"
+      - "top500-*.json"
   schedule:
-    - cron: '3 10 * * *'
+    - cron: "12 10 * * *"
   workflow_dispatch:
 
 permissions:

@@ -240,8 +240,9 @@ function TrendChart({ trendData, selectedDomains }) {
 }
 
 function SummaryCards({ trendData }) {
+  const isMobile = useIsMobile()
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-xs)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-xs)' }}>
       {trendData.domainStats.map((series, idx) => (
         <div key={series.domain} style={{ ...panelStyle, padding: 'var(--space-sm)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xxs)', marginBottom: 'var(--space-xxs)' }}>

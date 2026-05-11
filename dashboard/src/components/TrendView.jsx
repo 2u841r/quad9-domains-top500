@@ -16,7 +16,11 @@ const COLORS = [
   'var(--color-accent)',
   '#38bdf8',
   '#34d399',
+  '#fbbf24',
+  '#f472b6',
 ]
+
+const FAANG = ['facebook.com', 'amazon.com', 'apple.com', 'netflix.com', 'google.com']
 
 const panelStyle = {
   borderRadius: 'var(--border-radius-default)',
@@ -154,7 +158,7 @@ function TrendChart({ trendData, selectedDomains }) {
         )}
       </div>
       <ResponsiveContainer width="100%" height={320}>
-        <BarChart data={chartData} margin={{ top: 0, right: 16, bottom: 0, left: 36 }}>
+        <BarChart data={chartData} margin={{ top: 0, right: 16, bottom: 0, left: 56 }}>
           <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
           <XAxis
             dataKey="rank"
@@ -170,8 +174,8 @@ function TrendChart({ trendData, selectedDomains }) {
             tick={{ fill: '#c9c9c9', fontSize: 11, fontFamily: 'monospace' }}
             axisLine={false}
             tickLine={false}
-            width={56}
-            tickMargin={8}
+            width={68}
+            tickMargin={12}
           />
           <Tooltip
             content={<TrendTooltip selectedDomains={selectedDomains} statsByDomain={statsByDomain} />}
@@ -335,7 +339,7 @@ export default function TrendView() {
     : []
 
   const addDomain = (domain) => {
-    if (!domain || selectedDomains.includes(domain) || selectedDomains.length >= 3) return
+    if (!domain || selectedDomains.includes(domain) || selectedDomains.length >= 5) return
     setSelectedDomains(prev => [...prev, domain])
     setSearch('')
   }
@@ -364,8 +368,28 @@ export default function TrendView() {
                 Domains
               </div>
               <div style={{ color: 'var(--color-normal-gray)', fontSize: 'var(--font-size-lg)' }}>
-                Select up to 3 domains to compare rank distributions over time.
+                Select up to 5 domains to compare rank distributions over time.
               </div>
+            </div>
+            <div style={{ display: 'flex', gap: 'var(--space-xxs)', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => {
+                  setSelectedDomains(FAANG.filter(domain => dict.includes(domain)))
+                  setSearch('')
+                }}
+                style={{
+                  padding: 'var(--space-xxs) var(--space-sm)',
+                  borderRadius: 'var(--border-radius-default)',
+                  border: '1px solid var(--color-light-gray)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-lighter-gray)',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-family)',
+                  fontSize: 'var(--font-size-lg)',
+                }}
+              >
+                FAANG
+              </button>
             </div>
             <div style={{ display: 'flex', gap: 'var(--space-xxs)', flexWrap: 'wrap' }}>
               {selectedDomains.map(domain => (
@@ -377,8 +401,8 @@ export default function TrendView() {
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder={selectedDomains.length >= 3 ? 'Remove a domain to add another' : 'Search domains...'}
-                disabled={selectedDomains.length >= 3}
+                placeholder={selectedDomains.length >= 5 ? 'Remove a domain to add another' : 'Search domains...'}
+                disabled={selectedDomains.length >= 5}
                 style={{
                   width: '100%',
                   backgroundColor: 'var(--color-dark-gray)',

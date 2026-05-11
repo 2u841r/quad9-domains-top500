@@ -1,4 +1,5 @@
 import { useDeferredValue, useEffect, useState } from 'react'
+import { useIsMobile } from '../hooks/useIsMobile'
 import {
   BarChart, Bar, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
@@ -26,20 +27,6 @@ const panelStyle = {
   borderRadius: 'var(--border-radius-default)',
   border: '1px solid var(--color-darkest-gray)',
   backgroundColor: 'var(--color-darker-gray)',
-}
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 599px)')
-    const update = () => setIsMobile(mq.matches)
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
-
-  return isMobile
 }
 
 function getRankAxisMax(domainStats, rangeDays) {

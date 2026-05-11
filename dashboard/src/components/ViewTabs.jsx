@@ -1,6 +1,10 @@
+import { useIsMobile } from '../hooks/useIsMobile'
+
 const VIEWS = ['daily', 'monthly', 'quarterly', 'yearly', 'trend', 'facts', 'blog']
 
 export default function ViewTabs({ view, onChange }) {
+  const isMobile = useIsMobile()
+
   return (
     <div style={{
       display: 'flex',
@@ -15,8 +19,8 @@ export default function ViewTabs({ view, onChange }) {
             key={v}
             onClick={() => onChange(v)}
             style={{
-              padding: 'var(--space-xs) var(--space-xs)',
-              fontSize: 'var(--font-size-lg)',
+              padding: isMobile ? 'var(--space-xxs) var(--space-xxs)' : 'var(--space-xs) var(--space-xs)',
+              fontSize: isMobile ? 'var(--font-size-md)' : 'var(--font-size-lg)',
               fontFamily: 'var(--font-family)',
               fontWeight: 'var(--font-weight)',
               textTransform: 'capitalize',

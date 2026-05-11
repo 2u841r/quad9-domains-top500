@@ -28,6 +28,20 @@ const panelStyle = {
   backgroundColor: 'var(--color-darker-gray)',
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 599px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  return isMobile
+}
+
 function getRankAxisMax(domainStats, rangeDays) {
   const focusRank = Math.max(...domainStats.map(series => getSeriesFocusRank(series, rangeDays)), 0)
   const latestRank = Math.max(...domainStats.map(series => series.latestPosition ?? 0), 0)
@@ -130,6 +144,7 @@ function TrendTooltip({ active, payload, label, selectedDomains, statsByDomain }
 }
 
 function TrendChart({ trendData, selectedDomains }) {
+  const isMobile = useIsMobile()
   const statsByDomain = new Map(trendData.domainStats.map(series => [series.domain, series]))
   const maxRank = getRankAxisMax(trendData.domainStats, trendData.rangeDays)
   const ticks = getRankTicks(maxRank)
@@ -142,12 +157,12 @@ function TrendChart({ trendData, selectedDomains }) {
     .filter(item => item.count > 0)
 
   return (
-    <div style={{ ...panelStyle, padding: 'var(--space-sm)' }}>
+    <div style={{ ...panelStyle, padding: isMobile ? 'var(--space-xs)' : 'var(--space-sm)' }}>
       <div style={{ marginBottom: 'var(--space-xs)' }}>
         <div style={{ color: 'var(--color-lighter-gray)', fontSize: 'var(--font-size-md)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           Rank distribution
         </div>
-        <div style={{ color: 'var(--color-normal-gray)', fontSize: 'var(--font-size-lg)' }}>
+        <div style={{ color: 'var(--color-normal-gray)', fontSize: isMobile ? 'var(--font-size-md)' : 'var(--font-size-lg)' }}>
           X = rank 1-{maxRank}, Y = appearances in the selected window. Solid overlays mark the latest sample.
         </div>
         {hiddenOutliers.length > 0 && (
@@ -157,12 +172,12 @@ function TrendChart({ trendData, selectedDomains }) {
           </div>
         )}
       </div>
-      <ResponsiveContainer width="100%" height={320}>
-        <BarChart data={chartData} margin={{ top: 0, right: 16, bottom: 0, left: 56 }}>
+      <ResponsiveContainer width="100%" height={isMobile ? 240 : 320}>
+        <BarChart data={chartData} margin={{ top: 0, right: isMobile ? 4 : 16, bottom: 0, left: isMobile ? 4 : 56 }}>
           <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
           <XAxis
             dataKey="rank"
-            tick={{ fill: '#c9c9c9', fontSize: 11, fontFamily: 'monospace' }}
+            tick={{ fill: '#c9c9c9', fontSize: isMobile ? 9 : 11, fontFamily: 'monospace' }}
             axisLine={false}
             tickLine={false}
             ticks={ticks}
@@ -171,11 +186,11 @@ function TrendChart({ trendData, selectedDomains }) {
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fill: '#c9c9c9', fontSize: 11, fontFamily: 'monospace' }}
+            tick={{ fill: '#c9c9c9', fontSize: isMobile ? 9 : 11, fontFamily: 'monospace' }}
             axisLine={false}
             tickLine={false}
-            width={68}
-            tickMargin={12}
+            width={isMobile ? 30 : 68}
+            tickMargin={isMobile ? 2 : 12}
           />
           <Tooltip
             content={<TrendTooltip selectedDomains={selectedDomains} statsByDomain={statsByDomain} />}

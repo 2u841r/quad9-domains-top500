@@ -48,27 +48,26 @@ export default function StickyTable({
   const [hoveredRow, setHoveredRow] = useState(null)
   const [expandedCell, setExpandedCell] = useState(null)
   const [bodyTableWidth, setBodyTableWidth] = useState(null)
+  const [scrollMargin, setScrollMargin] = useState(0)
+  const count = rows?.length ?? 0
 
   const tbodyRef = useRef(null)
   const bodyTableRef = useRef(null)
-  const scrollMarginRef = useRef(0)
   const bodyScrollRef = useRef(null)
   const stickyHeadRef = useRef(null)
 
   useLayoutEffect(() => {
     if (tbodyRef.current) {
-      scrollMarginRef.current = tbodyRef.current.getBoundingClientRect().top + window.scrollY
+      setScrollMargin(tbodyRef.current.getBoundingClientRect().top + window.scrollY)
     }
-  })
-
-  const count = rows?.length ?? 0
+  }, [count, theadTop, minWidth, tableWidth, fullWidth])
   const shouldVirtualize = count > 150
 
   const virtualizer = useWindowVirtualizer({
     count: shouldVirtualize ? count : 0,
     estimateSize: () => 33,
     overscan: 8,
-    scrollMargin: scrollMarginRef.current,
+    scrollMargin,
   })
 
   // Compute cumulative left offsets for sticky columns

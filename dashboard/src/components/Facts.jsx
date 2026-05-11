@@ -97,7 +97,6 @@ export default function Facts() {
   const [modal, setModal] = useState(null) // { title, domains }
 
   useEffect(() => {
-    setLoading(true)
     loadAllBin()
       .then(() => {
         const { allBuf, dict, manifest } = getRawData()

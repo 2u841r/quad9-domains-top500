@@ -8,6 +8,7 @@ import DomainTable from './components/DomainTable'
 import ProgressBar from './components/ProgressBar'
 import Facts from './components/Facts'
 import Blog from './components/Blog'
+import TrendView from './components/TrendView'
 
 let nextCmpId = 0
 
@@ -43,7 +44,7 @@ export default function App() {
   const [primaryData, setPrimaryData] = useState(null)
   const [primaryLoading, setPrimaryLoading] = useState(false)
 
-  const primaryHook = useQuad9Data()
+  const { fetchPeriod, loading, progress, error } = useQuad9Data()
 
   const onCompareDataLoaded = useCallback((id, data) => {
     setCompareItems(prev => prev.map(c => c.id === id ? { ...c, data } : c))
@@ -58,20 +59,31 @@ export default function App() {
   useEffect(() => {
     if (latestDate === undefined) return
     const def = defaultPeriod(view, latestDate)
-    setPrimary(def)
-    setCompareItems([])
-    setPrimaryData(null)
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setPrimary(def ?? null)
+      setCompareItems([])
+      setPrimaryData(null)
+    })
+    return () => { cancelled = true }
   }, [view, latestDate])
 
   useEffect(() => {
     if (!primary) return
-    setPrimaryData(null)
-    setPrimaryLoading(true)
-    primaryHook.fetchPeriod(primary).then(data => {
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setPrimaryData(null)
+      setPrimaryLoading(true)
+    })
+    fetchPeriod(primary).then(data => {
+      if (cancelled) return
       setPrimaryData(data)
       setPrimaryLoading(false)
     })
-  }, [primary ? periodId(primary) : ''])
+    return () => { cancelled = true }
+  }, [primary, fetchPeriod])
 
   const addCompare = useCallback(() => {
     const id = nextCmpId++
@@ -95,14 +107,14 @@ export default function App() {
       <main style={{
         flex: 1,
         padding: 'var(--space-md) var(--space-xs)',
-        maxWidth: view === 'facts' ? 780 : view === 'blog' ? 780 : undefined,
+        maxWidth: view === 'facts' ? 780 : view === 'blog' ? 780 : view === 'trend' ? 1180 : undefined,
         margin: '0 auto',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-md)',
       }}>
-        {view === 'facts' ? <Facts /> : view === 'blog' ? <Blog /> : <div style={{ width: 'fit-content', maxWidth: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+        {view === 'facts' ? <Facts /> : view === 'blog' ? <Blog /> : view === 'trend' ? <TrendView /> : <div style={{ width: 'fit-content', maxWidth: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           {/* Controls */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-xs)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
@@ -133,10 +145,10 @@ export default function App() {
 
           {/* Progress */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xxxs)' }}>
-            <ProgressBar loading={primaryHook.loading} progress={primaryHook.progress} />
+            <ProgressBar loading={loading} progress={progress} />
           </div>
 
-          {primaryHook.error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{primaryHook.error}</p>}
+          {error && <p style={{ color: '#f87171', fontSize: 'var(--font-size-lg)' }}>{error}</p>}
 
           <CompareLabels primary={primary} primaryData={primaryData} compareItems={compareItems} />
 
@@ -217,11 +229,14 @@ function CompareLabels({ primary, primaryData, compareItems }) {
 
 function CompareRow({ view, compare, index, isLast, latestDate, excludes, onPeriodChange, onRemove, onAdd, onDataLoaded }) {
   const [loading, setLoading] = useState(false)
+  const compareKey = compare.period ? periodId(compare.period) : ''
 
   useEffect(() => {
     if (!compare.period) return
     let cancelled = false
-    setLoading(true)
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true)
+    })
     fetchPeriodData(compare.period)
       .then(data => {
         if (!cancelled && data) {
@@ -231,7 +246,7 @@ function CompareRow({ view, compare, index, isLast, latestDate, excludes, onPeri
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [compare.period ? periodId(compare.period) : ''])
+  }, [compare.id, compare.period, compareKey, onDataLoaded])
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>

@@ -297,7 +297,7 @@ function RankTimelineChart({ trendData, selectedDomains }) {
         </div>
       </div>
       <ResponsiveContainer width="100%" height={isMobile ? 200 : 280}>
-        <AreaChart data={rows} margin={{ top: 4, right: isMobile ? 4 : 16, bottom: 0, left: isMobile ? 4 : 40 }}>
+        <AreaChart data={rows} margin={{ top: 12, right: isMobile ? 4 : 16, bottom: 0, left: isMobile ? 4 : 40 }}>
           <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
           <XAxis
             dataKey="date"
@@ -308,7 +308,7 @@ function RankTimelineChart({ trendData, selectedDomains }) {
           />
           <YAxis
             reversed
-            domain={[yMin, yMax]}
+            domain={[Math.max(0, yMin - 0.5), yMax + 0.5]}
             ticks={ticks}
             allowDecimals={false}
             tick={{ fill: '#c9c9c9', fontSize: isMobile ? 9 : 11, fontFamily: 'monospace' }}

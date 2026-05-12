@@ -4,7 +4,7 @@ import {
   AreaChart, Area, BarChart, Bar, Cell, CartesianGrid, Legend, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { getRawData, loadAllBin } from '../hooks/useQuad9Data'
-import { buildTrendData } from '../utils/trends'
+import { buildTrendData, DOMAIN_ALIASES } from '../utils/trends'
 
 const RANGE_OPTIONS = [
   { key: '7', label: '7d' },
@@ -22,6 +22,7 @@ const COLORS = [
 ]
 
 const FAANG = ['facebook.com', 'amazon.com', 'apple.com', 'netflix.com', 'google.com']
+const SOCIAL = ['facebook.com', 'instagram.com', 'tiktok.com', 'x.com', 'youtube.com']
 
 const panelStyle = {
   borderRadius: 'var(--border-radius-default)',
@@ -549,30 +550,36 @@ export default function TrendView() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 'var(--space-xxs)', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => {
-                  setSelectedDomains(FAANG.filter(domain => dict.includes(domain)))
-                  setSearch('')
-                }}
-                style={{
-                  padding: 'var(--space-xxs) var(--space-sm)',
-                  borderRadius: 'var(--border-radius-default)',
-                  border: '1px solid var(--color-light-gray)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-lighter-gray)',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-family)',
-                  fontSize: 'var(--font-size-lg)',
-                }}
-              >
-                FAANG
-              </button>
+              {[{ label: 'FAANG', preset: FAANG }, { label: 'Social', preset: SOCIAL }].map(({ label, preset }) => (
+                <button
+                  key={label}
+                  onClick={() => { setSelectedDomains(preset.filter(domain => dict.includes(domain))); setSearch('') }}
+                  style={{
+                    padding: 'var(--space-xxs) var(--space-sm)',
+                    borderRadius: 'var(--border-radius-default)',
+                    border: '1px solid var(--color-light-gray)',
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-lighter-gray)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-family)',
+                    fontSize: 'var(--font-size-lg)',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
             <div style={{ display: 'flex', gap: 'var(--space-xxs)', flexWrap: 'wrap' }}>
               {selectedDomains.map(domain => (
                 <SelectionChip key={domain} domain={domain} onRemove={removeDomain} />
               ))}
             </div>
+            {selectedDomains.some(d => DOMAIN_ALIASES[d]) && (
+              <div style={{ color: 'var(--color-normal-gray)', fontSize: 'var(--font-size-md)' }}>
+                * Includes historical aliases:{' '}
+                {selectedDomains.filter(d => DOMAIN_ALIASES[d]).map(d => `${d} includes ${DOMAIN_ALIASES[d].join(', ')}`).join(' — ')}
+              </div>
+            )}
             <div style={{ position: 'relative', maxWidth: 420 }}>
               <input
                 type="text"

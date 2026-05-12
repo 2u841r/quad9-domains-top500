@@ -1,5 +1,9 @@
 const DOMAINS_PER_DAY = 500
 
+export const DOMAIN_ALIASES = {
+  'x.com': ['twitter.com'],
+}
+
 function clampRangeDays(rangeKey, totalDays) {
   if (rangeKey === 'all') return totalDays
   const parsed = Number.parseInt(rangeKey, 10)
@@ -22,6 +26,12 @@ export function buildTrendData({ allBuf, dict, manifest }, domains, rangeKey = '
   if (!selected.length) return null
 
   const selectedIds = new Map(selected.map(item => [item.id, item.domain]))
+  for (const { domain } of selected) {
+    for (const alias of (DOMAIN_ALIASES[domain] ?? [])) {
+      const aliasId = domainToId.get(alias)
+      if (aliasId != null && !selectedIds.has(aliasId)) selectedIds.set(aliasId, domain)
+    }
+  }
   const seriesMap = new Map(
     selected.map(({ domain }) => [
       domain,
@@ -46,10 +56,13 @@ export function buildTrendData({ allBuf, dict, manifest }, domains, rangeKey = '
       const id = allBuf[bufOffset + rank]
       const domain = selectedIds.get(id)
       if (!domain) continue
-
       const position = rank + 1
-      positions.set(domain, position)
+      const existing = positions.get(domain)
+      if (existing == null || position < existing) positions.set(domain, position)
+    }
 
+    for (const [domain, position] of positions) {
+      const rank = position - 1
       const series = seriesMap.get(domain)
       const bucket = series.histogram[rank]
       bucket.count += 1

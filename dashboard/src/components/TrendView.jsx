@@ -276,7 +276,7 @@ function RankTimelineChart({ trendData, selectedDomains }) {
   )
   const maxPos = allPositions.length ? Math.max(...allPositions) : 10
   const minPos = allPositions.length ? Math.min(...allPositions) : 1
-  const domainPad = Math.max(1, Math.round((maxPos - minPos) * 0.1))
+  const domainPad = Math.max(1, Math.round((maxPos - minPos) * 0.05))
   const yMin = Math.max(1, minPos - domainPad)
   const yMax = maxPos + domainPad
 

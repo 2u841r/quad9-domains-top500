@@ -182,8 +182,7 @@ function TrendChart({ trendData, selectedDomains }) {
           />
           <Tooltip
             content={<TrendTooltip selectedDomains={selectedDomains} statsByDomain={statsByDomain} />}
-            cursor={false}
-            shared={false}
+            cursor={{ fill: 'rgba(255,255,255,0.04)' }}
             offset={10}
             wrapperStyle={{ pointerEvents: 'none' }}
           />

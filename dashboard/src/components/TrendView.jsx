@@ -97,11 +97,13 @@ function SelectionChip({ domain, onRemove }) {
 
 function TrendTooltip({ active, payload, label, selectedDomains, statsByDomain }) {
   if (!active || !payload?.length) return null
+  const latestKeys = new Set(payload.filter(p => /^latest_\d+$/.test(p.dataKey) && p.value).map(p => p.dataKey.replace('latest_', '')))
+
   const visible = payload
     .map((item) => {
-      const match = /^(count|latest)_(\d+)$/.exec(item.dataKey)
+      const match = /^count_(\d+)$/.exec(item.dataKey)
       if (!match || !item.value) return null
-      const idx = Number(match[2])
+      const idx = Number(match[1])
       return { item, idx }
     })
     .filter(Boolean)
@@ -119,11 +121,11 @@ function TrendTooltip({ active, payload, label, selectedDomains, statsByDomain }
       <p style={{ color: 'var(--color-white)', margin: 0, fontFamily: 'monospace' }}>Rank #{label}</p>
       {visible.map(({ item, idx }) => {
         const domain = selectedDomains[idx]
-        const latestPosition = statsByDomain.get(domain)?.latestPosition
+        const isLatest = latestKeys.has(String(idx))
         return (
           <p key={item.dataKey} style={{ color: item.color, margin: 0 }}>
-            {domain}: {item.value} sample{item.value === 1 ? '' : 's'}
-            {latestPosition === label ? ' • latest' : ''}
+            {domain}: {item.value} day{item.value === 1 ? '' : 's'}
+            {isLatest ? ' • current rank' : ''}
           </p>
         )
       })}
@@ -151,7 +153,7 @@ function TrendChart({ trendData, selectedDomains }) {
           Rank distribution
         </div>
         <div style={{ color: 'var(--color-normal-gray)', fontSize: isMobile ? 'var(--font-size-md)' : 'var(--font-size-lg)' }}>
-          X = rank 1-{maxRank}, Y = appearances in the selected window. Solid overlays mark the latest sample.
+          X = rank 1-{maxRank}, Y = appearances in the selected window.
         </div>
         {hiddenOutliers.length > 0 && (
           <div style={{ color: 'var(--color-normal-gray)', fontSize: 'var(--font-size-md)', marginTop: 'var(--space-4xs)' }}>
@@ -170,7 +172,7 @@ function TrendChart({ trendData, selectedDomains }) {
             tickLine={false}
             ticks={ticks}
             type="number"
-            domain={[1, maxRank]}
+            domain={[0, maxRank + 1]}
           />
           <YAxis
             allowDecimals={false}
@@ -249,7 +251,7 @@ function SummaryCards({ trendData }) {
 }
 
 function RecentSamplesTable({ trendData, selectedDomains }) {
-  const rows = trendData.recentRows.slice(0, 14)
+  const rows = trendData.recentRows
 
   return (
     <div style={panelStyle}>

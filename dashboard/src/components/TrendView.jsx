@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import { useIsMobile } from '../hooks/useIsMobile'
 import {
-  BarChart, Bar, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  BarChart, Bar, Cell, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { getRawData, loadAllBin } from '../hooks/useQuad9Data'
 import { buildTrendData } from '../utils/trends'
@@ -205,22 +205,17 @@ function TrendChart({ trendData, selectedDomains }) {
                 stroke: COLORS[idx % COLORS.length],
                 strokeOpacity: 0.95,
               }}
-            />
-          ))}
-          {selectedDomains.map((domain, idx) => (
-            <Bar
-              key={`latest_${domain}`}
-              dataKey={`latest_${idx}`}
-              name={`${domain} latest`}
-              fill={COLORS[idx % COLORS.length]}
-              maxBarSize={6}
-              legendType="none"
-              radius={[2, 2, 0, 0]}
-              activeBar={{
-                fill: COLORS[idx % COLORS.length],
-                fillOpacity: 0.95,
-              }}
-            />
+            >
+              {chartData.map((row, rowIdx) => (
+                <Cell
+                  key={rowIdx}
+                  fill={COLORS[idx % COLORS.length]}
+                  fillOpacity={row[`latest_${idx}`] ? 0.85 : 0.22}
+                  stroke={COLORS[idx % COLORS.length]}
+                  strokeOpacity={row[`latest_${idx}`] ? 1 : 0.6}
+                />
+              ))}
+            </Bar>
           ))}
         </BarChart>
       </ResponsiveContainer>

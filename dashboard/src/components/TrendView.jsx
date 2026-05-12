@@ -22,7 +22,6 @@ const COLORS = [
 ]
 
 const FAANG = ['facebook.com', 'amazon.com', 'apple.com', 'netflix.com', 'google.com']
-const CDN = ['cloudfront.net', 'akamaiedge.net', 'cloudflare.net', 'fastly.net', 'cdn77.org']
 
 const panelStyle = {
   borderRadius: 'var(--border-radius-default)',
@@ -389,24 +388,6 @@ export default function TrendView() {
                 }}
               >
                 FAANG
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedDomains(CDN.filter(domain => dict.includes(domain)))
-                  setSearch('')
-                }}
-                style={{
-                  padding: 'var(--space-xxs) var(--space-sm)',
-                  borderRadius: 'var(--border-radius-default)',
-                  border: '1px solid var(--color-light-gray)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-lighter-gray)',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-family)',
-                  fontSize: 'var(--font-size-lg)',
-                }}
-              >
-                CDN
               </button>
             </div>
             <div style={{ display: 'flex', gap: 'var(--space-xxs)', flexWrap: 'wrap' }}>

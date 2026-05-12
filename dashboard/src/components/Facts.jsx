@@ -389,7 +389,7 @@ function TldSection({ tlds, tldDomains, total, onTldClick }) {
               <tr key={tld} onClick={() => onTldClick(tld, tldDomains.get(tld))} onMouseEnter={() => setHoveredTld(tld)} onMouseLeave={() => setHoveredTld(null)} style={{ cursor: 'pointer', backgroundColor: hoveredTld === tld ? 'var(--color-darker-gray)' : 'var(--color-dark-gray)', transition: 'var(--hover-transition)' }}>
                 <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--color-white)' }}>.{tld}</td>
                 <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)' }}>{count}</td>
-                <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-normal-gray)', fontFamily: 'monospace' }}>
+                <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-lighter-gray)', fontFamily: 'monospace' }}>
                   {((count / total) * 100).toFixed(1)}%
                 </td>
               </tr>

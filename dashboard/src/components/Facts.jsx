@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { loadAllBin, getRawData } from '../hooks/useQuad9Data'
 import { computeFacts } from '../utils/facts'
 import StickyTable from './StickyTable'
+import { Treemap, ResponsiveContainer, Tooltip } from 'recharts'
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -162,7 +163,7 @@ export default function Facts() {
         <div style={headingStyle}>Overview</div>
         <Stat label="Total days of data" value={facts.totalDays} />
         <Stat label="Unique domains ever seen" value={facts.totalUniqueDomains.toLocaleString()} />
-        <Stat label="Domains with hyphens" value={facts.hyphenCount} />
+<Stat label="Domains with hyphens" value={facts.hyphenCount} />
         <Stat label="Domains with numbers" value={facts.numericCount} />
         <div style={thStyle}>Letters (without TLD)</div>
         <div style={{
@@ -193,6 +194,7 @@ export default function Facts() {
         </div>
       </div>
 
+      <TldTreemap tlds={facts.tlds} total={facts.totalUniqueDomains} onTldClick={(tld) => setModal({ title: `.${tld} domains`, domains: facts.tldDomains.get(tld) })} />
       <TldSection tlds={facts.tlds} tldDomains={facts.tldDomains} total={facts.totalUniqueDomains} onTldClick={(tld, domains) => setModal({ title: `.${tld} domains`, domains })} />
 
       {/* Most consistent */}
@@ -361,6 +363,75 @@ function DomainListModal({ title, domains, onClose }) {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+const TLD_COLORS = [
+  'var(--color-accent)', '#38bdf8', '#34d399', '#fbbf24', '#f472b6',
+  '#a78bfa', '#fb923c', '#22d3ee', '#86efac', '#fde68a',
+]
+
+function TldTreemapTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null
+  const { name, count, pct } = payload[0].payload
+  return (
+    <div style={{
+      backgroundColor: 'var(--color-darker-gray)',
+      border: '1px solid var(--color-light-gray)',
+      borderRadius: 'var(--border-radius-default)',
+      padding: 'var(--space-xxs) var(--space-xs)',
+      fontSize: 'var(--font-size-lg)',
+      fontFamily: 'monospace',
+      pointerEvents: 'none',
+    }}>
+      <span style={{ color: 'var(--color-white)' }}>.{name}</span>
+      <span style={{ color: 'var(--color-normal-gray)' }}> {count} ({pct}%)</span>
+    </div>
+  )
+}
+
+function TldTreemap({ tlds, total, onTldClick }) {
+  const data = tlds.map(([name, count], i) => ({
+    name,
+    size: count,
+    count,
+    pct: ((count / total) * 100).toFixed(1),
+    color: TLD_COLORS[i % TLD_COLORS.length],
+  }))
+
+  return (
+    <div style={{ ...sectionStyle, padding: 'var(--space-sm)' }}>
+      <div style={{ ...headingStyle, border: 'none', borderRadius: 0, margin: 'calc(-1 * var(--space-sm)) calc(-1 * var(--space-sm)) var(--space-sm)', borderBottom: '1px solid var(--color-darkest-gray)' }}>
+        TLD treemap
+      </div>
+      <ResponsiveContainer width="100%" height={320}>
+        <Treemap
+          data={data}
+          dataKey="size"
+          aspectRatio={4 / 3}
+          content={({ x, y, width, height, name, color }) => {
+            const showLabel = width > 40 && height > 24
+            return (
+              <g>
+                <rect
+                  x={x} y={y} width={width} height={height}
+                  style={{ fill: color, fillOpacity: 0.7, stroke: 'var(--color-dark-gray)', strokeWidth: 2, cursor: 'pointer' }}
+                  onClick={() => onTldClick(name)}
+                />
+                {showLabel && (
+                  <text x={x + width / 2} y={y + height / 2} textAnchor="middle" dominantBaseline="middle"
+                    style={{ fill: '#fff', fontSize: Math.min(13, width / name.length * 1.4), fontFamily: 'monospace', pointerEvents: 'none' }}>
+                    .{name}
+                  </text>
+                )}
+              </g>
+            )
+          }}
+        >
+          <Tooltip content={<TldTreemapTooltip />} />
+        </Treemap>
+      </ResponsiveContainer>
     </div>
   )
 }

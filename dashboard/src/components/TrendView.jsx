@@ -500,7 +500,8 @@ export default function TrendView() {
         const raw = getRawData()
         const loadedDict = raw.dict ?? []
         setDict(loadedDict)
-        setSelectedDomains(loadedDict[0] ? [loadedDict[0]] : [])
+        const defaultDomain = loadedDict.includes('quad9.net') ? 'quad9.net' : (loadedDict[0] ?? null)
+        setSelectedDomains(defaultDomain ? [defaultDomain] : [])
         setLoading(false)
       })
       .catch((e) => {

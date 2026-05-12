@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import { useIsMobile } from '../hooks/useIsMobile'
 import {
-  BarChart, Bar, Cell, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  AreaChart, Area, BarChart, Bar, Cell, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { getRawData, loadAllBin } from '../hooks/useQuad9Data'
 import { buildTrendData } from '../utils/trends'
@@ -240,6 +240,104 @@ function SummaryCards({ trendData }) {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+function RankTimelineTooltip({ active, payload, label, selectedDomains }) {
+  if (!active || !payload?.length) return null
+  const visible = payload.filter(p => p.value != null)
+  if (!visible.length) return null
+  return (
+    <div style={{
+      backgroundColor: 'var(--color-darker-gray)',
+      border: '1px solid var(--color-light-gray)',
+      borderRadius: 'var(--border-radius-default)',
+      padding: 'var(--space-xxs) var(--space-xs)',
+      fontSize: 'var(--font-size-lg)',
+      pointerEvents: 'none',
+    }}>
+      <p style={{ color: 'var(--color-white)', margin: 0, fontFamily: 'monospace' }}>{label}</p>
+      {visible.map(p => (
+        <p key={p.dataKey} style={{ color: p.color, margin: 0, fontFamily: 'monospace' }}>
+          {selectedDomains[Number(p.dataKey.replace('position_', ''))]}: #{p.value}
+        </p>
+      ))}
+    </div>
+  )
+}
+
+function RankTimelineChart({ trendData, selectedDomains }) {
+  const isMobile = useIsMobile()
+  const rows = trendData.recentRows
+  const allPositions = rows.flatMap(row =>
+    selectedDomains.map((_, idx) => row[`position_${idx}`]).filter(Boolean)
+  )
+  const maxPos = allPositions.length ? Math.max(...allPositions) : 10
+  const minPos = allPositions.length ? Math.min(...allPositions) : 1
+  const domainPad = Math.max(1, Math.round((maxPos - minPos) * 0.1))
+  const yMin = Math.max(1, minPos - domainPad)
+  const yMax = maxPos + domainPad
+
+  const tickCount = isMobile ? 4 : 6
+  const step = Math.max(1, Math.round((yMax - yMin) / (tickCount - 1)))
+  const ticks = []
+  for (let t = yMin; t <= yMax; t += step) ticks.push(t)
+
+  return (
+    <div style={{ ...panelStyle, padding: isMobile ? 'var(--space-xs)' : 'var(--space-sm)' }}>
+      <div style={{ marginBottom: 'var(--space-xs)' }}>
+        <div style={{ color: 'var(--color-lighter-gray)', fontSize: 'var(--font-size-md)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          Rank over time
+        </div>
+        <div style={{ color: 'var(--color-normal-gray)', fontSize: isMobile ? 'var(--font-size-md)' : 'var(--font-size-lg)' }}>
+          X = date, Y = rank. Lower is better.
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={isMobile ? 200 : 280}>
+        <AreaChart data={rows} margin={{ top: 4, right: isMobile ? 4 : 16, bottom: 0, left: isMobile ? 4 : 40 }}>
+          <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+          <XAxis
+            dataKey="date"
+            tick={{ fill: '#c9c9c9', fontSize: isMobile ? 9 : 11, fontFamily: 'monospace' }}
+            axisLine={false}
+            tickLine={false}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            reversed
+            domain={[yMin, yMax]}
+            ticks={ticks}
+            allowDecimals={false}
+            tick={{ fill: '#c9c9c9', fontSize: isMobile ? 9 : 11, fontFamily: 'monospace' }}
+            axisLine={false}
+            tickLine={false}
+            width={isMobile ? 28 : 52}
+            tickMargin={isMobile ? 2 : 8}
+            tickFormatter={v => `#${v}`}
+          />
+          <Tooltip
+            content={<RankTimelineTooltip selectedDomains={selectedDomains} />}
+            cursor={{ stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1 }}
+            wrapperStyle={{ pointerEvents: 'none' }}
+          />
+          <Legend wrapperStyle={{ fontSize: '12px' }} />
+          {selectedDomains.map((domain, idx) => (
+            <Area
+              key={domain}
+              dataKey={`position_${idx}`}
+              name={domain}
+              stroke={COLORS[idx % COLORS.length]}
+              strokeWidth={1.5}
+              fill={COLORS[idx % COLORS.length]}
+              fillOpacity={0.08}
+              dot={false}
+              activeDot={{ r: 3 }}
+              connectNulls={false}
+            />
+          ))}
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   )
 }
@@ -484,6 +582,7 @@ export default function TrendView() {
         <>
           <SummaryCards trendData={trendData} />
           <TrendChart trendData={trendData} selectedDomains={selectedDomains} />
+          <RankTimelineChart trendData={trendData} selectedDomains={selectedDomains} />
           <RecentSamplesTable trendData={trendData} selectedDomains={selectedDomains} />
         </>
       ) : (

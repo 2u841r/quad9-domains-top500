@@ -90,6 +90,42 @@ function DowBar({ avgs }) {
   )
 }
 
+function DowAggregateSummary({ patterns }) {
+  const dayAvgs = DOW.map((day, i) => {
+    const vals = patterns.map(row => row.dowAvgs[i]).filter(v => v !== null)
+    return { day, avg: vals.reduce((s, v) => s + v, 0) / vals.length }
+  }).sort((a, b) => a.avg - b.avg)
+
+  const best = dayAvgs[0].avg
+  const worst = dayAvgs[dayAvgs.length - 1].avg
+
+  return (
+    <div style={{
+      borderTop: '1px solid var(--color-darkest-gray)',
+      padding: 'var(--space-sm)',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 'var(--space-xs)',
+      alignItems: 'center',
+    }}>
+      <span style={{ color: 'var(--color-normal-gray)', fontSize: 'var(--font-size-md)', textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>
+        Aggregate best→worst
+      </span>
+      {dayAvgs.map(({ day, avg }, i) => {
+        const pct = (avg - best) / (worst - best)
+        const color = pct < 0.25 ? '#4ade80' : pct > 0.75 ? '#f87171' : 'var(--color-lighter-gray)'
+        return (
+          <div key={day} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4xs)', fontFamily: 'monospace', fontSize: 'var(--font-size-lg)' }}>
+            {i > 0 && <span style={{ color: 'var(--color-darkest-gray)' }}>›</span>}
+            <span style={{ color }}>{day}</span>
+            <span style={{ color: 'var(--color-normal-gray)', fontSize: 'var(--font-size-md)' }}>#{avg.toFixed(1)}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function Facts() {
   const [facts, setFacts] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -195,7 +231,7 @@ export default function Facts() {
 
       {/* Day of week patterns */}
       <Section heading="Day-of-week patterns — top 100 consistent domains">
-        {({ theadTop }) => (
+        {({ theadTop }) => (<>
         <StickyTable
           theadTop={theadTop}
           fullWidth
@@ -247,7 +283,8 @@ export default function Facts() {
           ]}
           rows={facts.dowPatterns}
         />
-        )}
+        <DowAggregateSummary patterns={facts.dowPatterns} />
+        </>)}
       </Section>
 
       {modal && <DomainListModal title={modal.title} domains={modal.domains} onClose={() => setModal(null)} />}

@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import { useIsMobile } from '../hooks/useIsMobile'
 import {
-  AreaChart, Area, BarChart, Bar, Cell, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  AreaChart, Area, BarChart, Bar, Cell, CartesianGrid, Legend, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { getRawData, loadAllBin } from '../hooks/useQuad9Data'
 import { buildTrendData } from '../utils/trends'
@@ -343,6 +343,85 @@ function RankTimelineChart({ trendData, selectedDomains }) {
   )
 }
 
+const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function DowRadarChart({ trendData, selectedDomains }) {
+  const isMobile = useIsMobile()
+
+  const radarData = DOW_LABELS.map((day, dowIdx) => {
+    const row = { day }
+    trendData.domainStats.forEach((series, idx) => {
+      const positions = series.samples
+        .filter(s => s.position != null && new Date(s.date + 'T00:00:00Z').getUTCDay() === dowIdx)
+        .map(s => s.position)
+      row[`domain_${idx}`] = positions.length
+        ? Math.round((positions.reduce((a, b) => a + b, 0) / positions.length) * 10) / 10
+        : null
+    })
+    return row
+  })
+
+  const allVals = radarData.flatMap(row =>
+    selectedDomains.map((_, idx) => row[`domain_${idx}`]).filter(Boolean)
+  )
+  const maxVal = allVals.length ? Math.max(...allVals) : 500
+  const domainMax = Math.ceil(maxVal * 1.15)
+
+  return (
+    <div style={{ ...panelStyle, padding: isMobile ? 'var(--space-xs)' : 'var(--space-sm)' }}>
+      <div style={{ marginBottom: 'var(--space-xs)' }}>
+        <div style={{ color: 'var(--color-lighter-gray)', fontSize: 'var(--font-size-md)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          Day-of-week profile
+        </div>
+        <div style={{ color: 'var(--color-normal-gray)', fontSize: isMobile ? 'var(--font-size-md)' : 'var(--font-size-lg)' }}>
+          Avg rank per day. Smaller area = better (lower rank numbers).
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={isMobile ? 240 : 320}>
+        <RadarChart data={radarData} margin={{ top: 8, right: 32, bottom: 8, left: 32 }}>
+          <PolarGrid stroke="rgba(255,255,255,0.1)" />
+          <PolarAngleAxis
+            dataKey="day"
+            tick={{ fill: '#c9c9c9', fontSize: isMobile ? 10 : 12, fontFamily: 'monospace' }}
+          />
+          <PolarRadiusAxis
+            domain={[0, domainMax]}
+            tick={{ fill: '#c9c9c9', fontSize: 9 }}
+            tickCount={4}
+            tickFormatter={v => v ? `#${v}` : ''}
+            axisLine={false}
+          />
+          <Tooltip
+            formatter={(value, name, props) => [`#${value}`, selectedDomains[Number(name.replace('domain_', ''))]]}
+            contentStyle={{
+              backgroundColor: 'var(--color-darker-gray)',
+              border: '1px solid var(--color-light-gray)',
+              borderRadius: 'var(--border-radius-default)',
+              fontSize: 'var(--font-size-lg)',
+              fontFamily: 'monospace',
+            }}
+            labelStyle={{ color: 'var(--color-white)' }}
+            itemStyle={{ color: 'var(--color-lighter-gray)' }}
+          />
+          <Legend wrapperStyle={{ fontSize: '12px' }} formatter={(value) => selectedDomains[Number(value.replace('domain_', ''))]} />
+          {selectedDomains.map((domain, idx) => (
+            <Radar
+              key={domain}
+              dataKey={`domain_${idx}`}
+              name={`domain_${idx}`}
+              stroke={COLORS[idx % COLORS.length]}
+              fill={COLORS[idx % COLORS.length]}
+              fillOpacity={0.1}
+              strokeWidth={1.5}
+              dot={false}
+            />
+          ))}
+        </RadarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
 function RecentSamplesTable({ trendData, selectedDomains }) {
   const rows = trendData.recentRows
 
@@ -584,6 +663,7 @@ export default function TrendView() {
           <SummaryCards trendData={trendData} />
           <TrendChart trendData={trendData} selectedDomains={selectedDomains} />
           <RankTimelineChart trendData={trendData} selectedDomains={selectedDomains} />
+          <DowRadarChart trendData={trendData} selectedDomains={selectedDomains} />
           <RecentSamplesTable trendData={trendData} selectedDomains={selectedDomains} />
         </>
       ) : (

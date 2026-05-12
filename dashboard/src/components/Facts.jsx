@@ -411,7 +411,11 @@ function TldTreemap({ tlds, total, onTldClick }) {
           dataKey="size"
           aspectRatio={4 / 3}
           content={({ x, y, width, height, name, color }) => {
-            const showLabel = width > 40 && height > 24
+            const label = `.${name}`
+const fontFromWidth = (width * 0.82) / (label.length * 0.6)
+const fontFromHeight = height * 0.38
+const fontSize = Math.min(13, fontFromWidth, fontFromHeight)
+const showLabel = fontSize >= 5.5
             return (
               <g>
                 <rect
@@ -421,8 +425,8 @@ function TldTreemap({ tlds, total, onTldClick }) {
                 />
                 {showLabel && (
                   <text x={x + width / 2} y={y + height / 2} textAnchor="middle" dominantBaseline="middle"
-                    style={{ fill: '#fff', fontSize: Math.min(13, width / name.length * 1.4), fontFamily: 'monospace', pointerEvents: 'none' }}>
-                    .{name}
+                    style={{ fill: '#fff', fontSize, fontFamily: 'monospace', pointerEvents: 'none' }}>
+                    {label}
                   </text>
                 )}
               </g>

@@ -283,6 +283,7 @@ function RankTimelineChart({ trendData, selectedDomains }) {
   const step = Math.max(1, Math.round((yMax - yMin) / (tickCount - 1)))
   const ticks = []
   for (let t = yMin; t <= yMax; t += step) ticks.push(t)
+  const xInterval = Math.max(0, Math.ceil(rows.length / 10) - 1)
 
   return (
     <div style={{ ...panelStyle, padding: isMobile ? 'var(--space-xs)' : 'var(--space-sm)' }}>
@@ -302,7 +303,7 @@ function RankTimelineChart({ trendData, selectedDomains }) {
             tick={{ fill: '#c9c9c9', fontSize: isMobile ? 9 : 11, fontFamily: 'monospace' }}
             axisLine={false}
             tickLine={false}
-            interval="preserveStartEnd"
+            interval={xInterval}
           />
           <YAxis
             reversed

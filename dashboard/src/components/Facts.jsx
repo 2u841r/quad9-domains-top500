@@ -61,7 +61,7 @@ function Section({ heading, children }) {
 function Stat({ label, value }) {
   return (
     <div style={{ padding: 'var(--space-xs) var(--space-sm)', borderBottom: '1px solid var(--color-darker-gray)' }}>
-      <span style={{ color: 'var(--color-normal-gray)', fontSize: 'var(--font-size-lg)' }}>{label} </span>
+      <span style={{ color: 'var(--color-lighter-gray)', fontSize: 'var(--font-size-lg)' }}>{label} </span>
       <span style={{ color: 'var(--color-white)', fontWeight: 600 }}>{value}</span>
     </div>
   )
@@ -193,6 +193,8 @@ export default function Facts() {
         </div>
       </div>
 
+      <TldSection tlds={facts.tlds} tldDomains={facts.tldDomains} total={facts.totalUniqueDomains} onTldClick={(tld, domains) => setModal({ title: `.${tld} domains`, domains })} />
+
       {/* Most consistent */}
       <Section heading="Most consistent — top 100 by days in top 500 (no domain hit 100%)">
         {({ theadTop }) => (
@@ -226,8 +228,6 @@ export default function Facts() {
           />
         )}
       </Section>
-
-      <TldSection tlds={facts.tlds} tldDomains={facts.tldDomains} total={facts.totalUniqueDomains} onTldClick={(tld, domains) => setModal({ title: `.${tld} domains`, domains })} />
 
       {/* Day of week patterns */}
       <Section heading="Day-of-week patterns — top 100 consistent domains">

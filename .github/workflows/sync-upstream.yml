@@ -30,4 +30,8 @@ jobs:
             merge_msg="chore: sync upstream data"
           fi
           git merge upstream/main --no-ff --allow-unrelated-histories -m "$merge_msg"
-          git push origin main
+          for i in 1 2 3; do
+            git push origin main && break
+            echo "Push attempt $i failed, retrying in 30s..."
+            sleep 30
+          done

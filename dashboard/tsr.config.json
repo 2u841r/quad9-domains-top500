@@ -1,0 +1,6 @@
+{
+  "target": "react",
+  "disableTypes": true,
+  "routesDirectory": "./src/routes",
+  "generatedRouteTree": "./src/routeTree.gen.js"
+}

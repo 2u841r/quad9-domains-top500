@@ -23,8 +23,8 @@ export default function ViewTabs() {
           key={to}
           to={to}
           style={{
-            padding: isMobile ? 'var(--space-xxs) var(--space-xxs)' : 'var(--space-xs) var(--space-xs)',
-            fontSize: isMobile ? 'var(--font-size-md)' : 'var(--font-size-lg)',
+            padding: isMobile ? 'var(--space-xs) var(--space-sm)' : 'var(--space-sm) var(--space-md)',
+            fontSize: isMobile ? 'var(--font-size-lg)' : 'var(--font-size-xl)',
             fontFamily: 'var(--font-family)',
             fontWeight: 'var(--font-weight)',
             textTransform: 'capitalize',
@@ -40,8 +40,8 @@ export default function ViewTabs() {
           }}
           activeProps={{
             style: {
-              padding: isMobile ? 'var(--space-xxs) var(--space-xxs)' : 'var(--space-xs) var(--space-xs)',
-              fontSize: isMobile ? 'var(--font-size-md)' : 'var(--font-size-lg)',
+              padding: isMobile ? 'var(--space-xs) var(--space-sm)' : 'var(--space-sm) var(--space-md)',
+              fontSize: isMobile ? 'var(--font-size-lg)' : 'var(--font-size-xl)',
               fontFamily: 'var(--font-family)',
               fontWeight: 'var(--font-weight)',
               textTransform: 'capitalize',

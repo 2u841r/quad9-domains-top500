@@ -219,7 +219,7 @@ export default function StickyTable({
     ? virtualItems[0].start - virtualizer.options.scrollMargin
     : 0
   const paddingBottom = shouldVirtualize && virtualItems.length > 0
-    ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
+    ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end + scrollMargin
     : 0
 
   const tableStyle = { ...(tableWidth ? { width: tableWidth } : fullWidth ? { width: '100%' } : {}), borderCollapse: 'collapse', tableLayout: 'fixed', minWidth }

@@ -57,8 +57,23 @@ export default function StickyTable({
   const stickyHeadRef = useRef(null)
 
   useLayoutEffect(() => {
-    if (tbodyRef.current) {
-      setScrollMargin(tbodyRef.current.getBoundingClientRect().top + window.scrollY)
+    const el = tbodyRef.current
+    if (!el) return
+
+    function remeasure() {
+      const next = Math.round(el.getBoundingClientRect().top + window.scrollY)
+      setScrollMargin(prev => prev === next ? prev : next)
+    }
+
+    remeasure()
+
+    const ro = new ResizeObserver(remeasure)
+    ro.observe(document.documentElement)
+    window.addEventListener('resize', remeasure)
+
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', remeasure)
     }
   }, [count, theadTop, minWidth, tableWidth, fullWidth])
   const shouldVirtualize = count > 150

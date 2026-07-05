@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 
 const thBase = {
@@ -18,6 +18,7 @@ const tdBase = {
   padding: 'var(--space-xxs) var(--space-sm)',
   fontSize: 'var(--font-size-lg)',
   borderBottom: '1px solid var(--color-darker-gray)',
+  whiteSpace: 'nowrap',
 }
 
 /**
@@ -49,6 +50,7 @@ export default function StickyTable({
   const [expandedCell, setExpandedCell] = useState(null)
   const [bodyTableWidth, setBodyTableWidth] = useState(null)
   const [scrollMargin, setScrollMargin] = useState(0)
+  const [rowHeight, setRowHeight] = useState(33)
   const count = rows?.length ?? 0
 
   const tbodyRef = useRef(null)
@@ -57,7 +59,10 @@ export default function StickyTable({
   const stickyHeadRef = useRef(null)
 
   useLayoutEffect(() => {
-    const el = tbodyRef.current
+    // Measure the scroll wrapper, not the tbody: the tbody sits inside the
+    // absolutely offset table, so its document position moves with the
+    // virtual window. The wrapper's top is scroll-independent.
+    const el = bodyScrollRef.current ?? tbodyRef.current
     if (!el) return
 
     function measure() {
@@ -75,14 +80,34 @@ export default function StickyTable({
       window.removeEventListener('resize', measure)
     }
   }, [count, theadTop, minWidth, tableWidth, fullWidth])
+
+  // Measure the real rendered row height so the virtualizer's estimate matches
+  // the DOM. Without this, getTotalSize() drifts from the actual content height
+  // and the native scrollbar thumb desyncs while being dragged.
+  useLayoutEffect(() => {
+    const tr = tbodyRef.current?.querySelector('tr[data-row]')
+    if (!tr) return
+    // Keep the fractional height: rounding a 33.5px row to 33 accumulates
+    // hundreds of px of drift across 500 rows.
+    const h = tr.getBoundingClientRect().height
+    if (h > 0 && Math.abs(h - rowHeight) > 0.25) setRowHeight(h)
+  }, [count, rowHeight])
+
   const shouldVirtualize = count > 150
 
   const virtualizer = useWindowVirtualizer({
     count: shouldVirtualize ? count : 0,
-    estimateSize: () => 33,
+    estimateSize: () => rowHeight,
     overscan: 8,
     scrollMargin,
   })
+
+  // estimateSize is not part of the virtualizer's measurement-memo deps, so an
+  // estimate change requires explicit cache invalidation for getTotalSize() and
+  // item positions to reflect the new value.
+  useEffect(() => {
+    virtualizer.measure()
+  }, [rowHeight, scrollMargin, virtualizer])
 
   // Compute cumulative left offsets for sticky columns
   const stickyLeft = []
@@ -204,6 +229,7 @@ export default function StickyTable({
     return (
       <tr
         key={ri}
+        data-row=""
         onMouseEnter={() => setHoveredRow(ri)}
         onMouseLeave={() => setHoveredRow(null)}
         onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -215,18 +241,35 @@ export default function StickyTable({
   }
 
   const virtualItems = virtualizer.getVirtualItems()
-  const paddingTop = shouldVirtualize && virtualItems.length > 0
+
+  // Document height must be a pure function of count * rowHeight, never of
+  // which rows happen to be mounted. A spacer div fixed at getTotalSize()
+  // guarantees that; the table is absolutely offset inside it. Padding rows
+  // cannot do this: they add (real - estimated) height per mounted row, so
+  // the document height jitters while the native scrollbar is dragged.
+  const totalSize = shouldVirtualize ? virtualizer.getTotalSize() : 0
+  const offsetY = shouldVirtualize && virtualItems.length > 0
     ? virtualItems[0].start - virtualizer.options.scrollMargin
     : 0
+  const paddingTop = offsetY
   const paddingBottom = shouldVirtualize && virtualItems.length > 0
-    ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end + scrollMargin
+    ? totalSize - (virtualItems[virtualItems.length - 1].end - virtualizer.options.scrollMargin)
     : 0
 
   const tableStyle = { ...(tableWidth ? { width: tableWidth } : fullWidth ? { width: '100%' } : {}), borderCollapse: 'collapse', tableLayout: 'fixed', minWidth }
+  // The spacer carries the table's horizontal sizing so overflow-x scrolling
+  // still gets the full width (an absolutely positioned table does not
+  // contribute to its parent's scrollable width).
+  const spacerStyle = {
+    ...(tableWidth ? { width: tableWidth } : fullWidth ? { width: '100%' } : {}),
+    minWidth,
+    height: totalSize,
+    position: 'relative',
+  }
 
   if (theadTop !== undefined) {
     return (
-      <div>
+      <div style={{ overflowAnchor: 'none' }}>
         {/* Sticky header — outside overflow-x:auto, position:sticky works */}
         <div
           ref={stickyHeadRef}
@@ -239,26 +282,36 @@ export default function StickyTable({
             </thead>
           </table>
         </div>
-        {/* Scrollable body */}
-        <div ref={bodyScrollRef} style={{ overflowX: 'auto' }} onScroll={onBodyScroll}>
-          <table ref={bodyTableRef} style={tableStyle}>
-            {colgroup}
-            <tbody ref={tbodyRef}>
-              {paddingTop > 0 && <tr><td style={{ height: paddingTop }} /></tr>}
-              {shouldVirtualize
-                ? virtualItems.map(vr => renderRow(rows[vr.index], vr.index))
-                : rows?.map((row, ri) => renderRow(row, ri))
-              }
-              {paddingBottom > 0 && <tr><td style={{ height: paddingBottom }} /></tr>}
-            </tbody>
-          </table>
+        {/* Scrollable body. overflow-y hidden so sub-pixel overshoot of the
+            offset table past the spacer cannot spawn a nested scrollbar. */}
+        <div ref={bodyScrollRef} style={{ overflowX: 'auto', overflowY: 'hidden' }} onScroll={onBodyScroll}>
+          {shouldVirtualize ? (
+            <div style={spacerStyle}>
+              <table
+                ref={bodyTableRef}
+                style={{ ...tableStyle, position: 'absolute', top: offsetY, left: 0 }}
+              >
+                {colgroup}
+                <tbody ref={tbodyRef}>
+                  {virtualItems.map(vr => renderRow(rows[vr.index], vr.index))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <table ref={bodyTableRef} style={tableStyle}>
+              {colgroup}
+              <tbody ref={tbodyRef}>
+                {rows?.map((row, ri) => renderRow(row, ri))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: 'auto', overflowAnchor: 'none' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth }}>
         <thead>
           <tr>{columns.map((col, ci) => renderTh(col, ci))}</tr>

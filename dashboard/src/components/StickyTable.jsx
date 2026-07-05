@@ -60,20 +60,19 @@ export default function StickyTable({
     const el = tbodyRef.current
     if (!el) return
 
-    function remeasure() {
+    function measure() {
       const next = Math.round(el.getBoundingClientRect().top + window.scrollY)
       setScrollMargin(prev => prev === next ? prev : next)
     }
 
-    remeasure()
+    measure()
+    // RAF catches layout that settles asynchronously after data loads
+    const raf = requestAnimationFrame(measure)
 
-    const ro = new ResizeObserver(remeasure)
-    ro.observe(document.documentElement)
-    window.addEventListener('resize', remeasure)
-
+    window.addEventListener('resize', measure)
     return () => {
-      ro.disconnect()
-      window.removeEventListener('resize', remeasure)
+      cancelAnimationFrame(raf)
+      window.removeEventListener('resize', measure)
     }
   }, [count, theadTop, minWidth, tableWidth, fullWidth])
   const shouldVirtualize = count > 150

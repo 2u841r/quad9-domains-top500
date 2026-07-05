@@ -68,6 +68,17 @@ jobs:
       - uses: actions/configure-pages@v6
 
       - uses: actions/deploy-pages@v5
-        id: deployment
+        id: deploy-1
+        continue-on-error: true
+        with:
+          artifact_name: ${{ needs.build.outputs.pages_artifact_name }}
+
+      - name: Wait before retry
+        if: steps.deploy-1.outcome == 'failure'
+        run: sleep 20
+
+      - uses: actions/deploy-pages@v5
+        id: deploy-2
+        if: steps.deploy-1.outcome == 'failure'
         with:
           artifact_name: ${{ needs.build.outputs.pages_artifact_name }}
